@@ -1,0 +1,43 @@
+{
+  "name": "observable-mongo",
+  "version": "1.0.0",
+  "description": "Functions that provide node mongods driver APIs as Observables",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "devDependencies": {
+    "@types/chai": "^4.1.2",
+    "@types/mocha": "^2.2.48",
+    "@types/mongodb": "^3.0.5",
+    "@types/node": "^9.4.6",
+    "chai": "^4.1.2",
+    "mocha": "^5.0.1",
+    "ts-node": "^5.0.0",
+    "typescript": "^2.7.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.5",
+    "mongodb": "^3.0.3",
+    "mongodb-observable": "0.0.0",
+    "rxjs": "^5.5.6"
+  },
+  "scripts": {
+    "test": "mocha -r ts-node/register src/**/*.spec.ts",
+    "tsc": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EnricoPicci/observable-mongo.git"
+  },
+  "keywords": [
+    "mongo",
+    "mongodb",
+    "observable",
+    "rxjs"
+  ],
+  "author": "Enrico",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EnricoPicci/observable-mongo/issues"
+  },
+  "homepage": "https://github.com/EnricoPicci/observable-mongo#readme"
+}
