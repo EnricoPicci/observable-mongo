@@ -27,7 +27,7 @@
   "scripts": {
     "test-mocha": "mocha -r ts-node/register --require source-map-support/register --recursive src/**/*.spec.ts ",
     "tsc": "tsc",
-    "test": "nyc npm run test-mocha",
+    "test": "npm run tsc  && nyc npm run test-mocha",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "nyc": {
