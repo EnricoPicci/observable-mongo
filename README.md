@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/EnricoPicci/observable-mongo.svg?branch=master)](https://travis-ci.org/EnricoPicci/observable-mongo)
+[![Coverage Status](https://coveralls.io/repos/github/EnricoPicci/observable-mongo/badge.svg?branch=master)](https://coveralls.io/github/EnricoPicci/observable-mongo?branch=master)
+
 # observable-mongo
 Functions that provide 'node mongodb driver APIs' as Observables
 
