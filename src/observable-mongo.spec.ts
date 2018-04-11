@@ -1,9 +1,7 @@
 
 import 'mocha';
 
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/do';
+import { switchMap, map } from 'rxjs/operators';
 
 import { MongoClient } from 'mongodb';
 
@@ -34,20 +32,22 @@ describe('mongo observable functions chained', () => {
         let objectsQueried = new Array<object>();
 
         connectObs(uri)
-        .switchMap(client => {
-            connectedClient = client;
-            const db = client.db(dbName);
-            return collectionObs(db, collectionName).map(collection => {return {collection, client}});
-        })
-        .switchMap(data => dropObs(data.collection).map(_d => data.client))
-        .switchMap(client => {
-            const db = client.db(dbName);
-            return createCollectionObs(collectionName, db);
-        })
-        .switchMap(collection => insertManyObs(objectsToInsert, collection).map(obectIDs => {
-            return {obectIDs, collection};
-        }))
-        .switchMap(data => findObs(data.collection))
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(objectsToInsert, collection).pipe(map(obectIDs => {
+                return {obectIDs, collection};
+            }))),
+            switchMap(data => findObs(data.collection))
+        )
         .subscribe(
             object => {
                 console.log('obj', object);

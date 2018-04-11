@@ -3,7 +3,6 @@ import { Observable } from 'rxjs/Observable';
 import { Observer} from 'rxjs/Observer';
 import {TeardownLogic} from 'rxjs/Subscription';
 import 'rxjs/add/observable/bindNodeCallback';
-import 'rxjs/add/observable/fromEvent';
 
 import * as _ from 'lodash';
 
@@ -92,10 +91,10 @@ export function insertManyObs(objects: Array<{}>, collection: Collection<any>): 
 
 // ============================ FIND (query) ================================
 // Returns an Observable which emits each object found by the query
-export function findObs(collection: Collection<any>, queryConditions?: any) {
+export function findObs(collection: Collection<any>, queryConditions?: any): Observable<any> {
     const queryObj = queryConditions ? queryConditions : {};
     const queryCursor = collection.find(queryObj);
-    return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
+    return Observable.create((observer: Observer<any>): TeardownLogic => {
                             queryCursor.forEach(
                                 doc => observer.next(doc),
                                 () => observer.complete()

@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Observable_1 = require("rxjs/Observable");
 require("rxjs/add/observable/bindNodeCallback");
-require("rxjs/add/observable/fromEvent");
 const _ = require("lodash");
 const mongodb_1 = require("mongodb");
 // ============================ CONNECT ================================
