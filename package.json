@@ -1,6 +1,6 @@
 {
   "name": "observable-mongo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Functions that provide 'node mongodb driver APIs' as Observables",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,6 @@
   "dependencies": {
     "lodash": "^4.17.5",
     "mongodb": "^3.0.3",
-    "mongodb-observable": "0.0.0",
     "rxjs": "^5.5.6"
   },
   "scripts": {
