@@ -11,23 +11,26 @@ import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
 import { createCollectionObs } from './observable-mongo';
 import { insertManyObs } from './observable-mongo';
+import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
 
-    it('connects to db, drops a collection, re-create the collection, inserts 3 objects, query the collection', done => {
+    it(`connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then inserts one object and queries the collection`, done => {
 
         const uri = config.mongoUri;
         const dbName = 'mydb';
         const collectionName = 'testColl';
         let connectedClient: MongoClient;
 
-        const objectsToInsert = [
+        const manyObjectsToInsert = [
             {name: 'Lucy3'},
             {name: 'Tony3'},
             {name: 'Andrea3'}
         ];
+        const oneObjectsToInsert = {anotherName: 'Buba1'};
 
         let objectsQueried = new Array<object>();
 
@@ -43,9 +46,8 @@ describe('mongo observable functions chained', () => {
                 const db = client.db(dbName);
                 return createCollectionObs(collectionName, db);
             }),
-            switchMap(collection => insertManyObs(objectsToInsert, collection).pipe(map(obectIDs => {
-                return {obectIDs, collection};
-            }))),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(_ => collection))),
+            switchMap(collection => insertOneObs(oneObjectsToInsert, collection).pipe(map(obectIDs => ({obectIDs, collection})))),
             switchMap(data => findObs(data.collection))
         )
         .subscribe(
@@ -58,8 +60,9 @@ describe('mongo observable functions chained', () => {
                 done(err);
             },
             () => {
-                if (objectsQueried.length !== objectsToInsert.length) {
-                    const errMsg = 'Number of objects queried ' + objectsQueried.length + ' not equal to number of objects inserted ' + objectsToInsert.length;
+                if (objectsQueried.length !== manyObjectsToInsert.length + 1) {
+                    const errMsg = 'Number of objects queried ' + objectsQueried.length + 
+                                    ' not equal to number of objects inserted ' + manyObjectsToInsert.length + 1;
                     console.error(errMsg);
                     done(errMsg);
                 }

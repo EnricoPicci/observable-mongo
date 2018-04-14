@@ -73,10 +73,21 @@ export function createCollectionObs(name: string, db: Db): Observable<Collection
 // }
 
 
+// ============================ INSERT ONE ================================
+// Returns an Observable which emits when the Objects have been inserted
+export function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID> {
+    return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
+        collection.insertOne(object, (err, result) => {
+            if(err) observer.error(err);
+            observer.next(_.values(result.insertedId));
+            observer.complete();
+        })
+    })
+}
 
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects have been inserted
-export function insertManyObs(objects: Array<{}>, collection: Collection<any>): Observable<Array<ObjectID>> {
+export function insertManyObs(objects: Array<Object>, collection: Collection<any>): Observable<Array<ObjectID>> {
     return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
         collection.insertMany(objects, (err, result) => {
             if(err) observer.error(err);
