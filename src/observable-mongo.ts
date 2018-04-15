@@ -3,6 +3,7 @@ import { Observable } from 'rxjs/Observable';
 import { Observer} from 'rxjs/Observer';
 import {TeardownLogic} from 'rxjs/Subscription';
 import 'rxjs/add/observable/bindNodeCallback';
+import 'rxjs/add/observable/fromPromise';
 
 import * as _ from 'lodash';
 
@@ -11,6 +12,7 @@ import { MongoCallback } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
+import {UpdateWriteOpResult} from 'mongodb';
 
 // ============================ CONNECT ================================
 // Returns an Observable which emits when the connection is established
@@ -74,7 +76,7 @@ export function createCollectionObs(name: string, db: Db): Observable<Collection
 
 
 // ============================ INSERT ONE ================================
-// Returns an Observable which emits when the Objects have been inserted
+// Returns an Observable which emits when the Object has been inserted
 export function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID> {
     return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
         collection.insertOne(object, (err, result) => {
@@ -138,3 +140,15 @@ export function dropObs(collection: Collection<any>): Observable<any> {
     })
 }
 
+
+// ============================ UPDATE ONE ================================
+// Returns an Observable which emits when the Object has been updated
+export function updateOneObs(filter: Object, dataToUpdate: Object, collection: Collection<any>): Observable<UpdateWriteOpResult> {
+    return Observable.fromPromise(collection.updateOne(filter, {$set: dataToUpdate}));
+}
+
+// ============================ INSERT MANY ================================
+// Returns an Observable which emits when the Objects have been updated
+export function updateManyObs(filter: Object, dataToUpdate: Object, collection: Collection<any>): Observable<UpdateWriteOpResult> {
+    return Observable.fromPromise(collection.updateMany(filter, {$set: dataToUpdate}));
+}

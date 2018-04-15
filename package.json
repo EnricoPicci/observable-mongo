@@ -1,6 +1,6 @@
 {
   "name": "observable-mongo",
-  "version": "1.5.0",
+  "version": "1.5.2",
   "description": "Functions that provide 'node mongodb driver APIs' as Observables",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,7 +27,8 @@
     "test-mocha": "mocha -r ts-node/register --require source-map-support/register --recursive src/**/*.spec.ts ",
     "tsc": "tsc",
     "test": "npm run tsc  && nyc npm run test-mocha",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "prepublishOnly": "npm run tsc"
   },
   "nyc": {
     "extension": [

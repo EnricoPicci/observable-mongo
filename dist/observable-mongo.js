@@ -61,6 +61,19 @@ exports.createCollectionObs = createCollectionObs;
 //         })
 //     })
 // }
+// ============================ INSERT ONE ================================
+// Returns an Observable which emits when the Objects have been inserted
+function insertOneObs(object, collection) {
+    return Observable_1.Observable.create((observer) => {
+        collection.insertOne(object, (err, result) => {
+            if (err)
+                observer.error(err);
+            observer.next(_.values(result.insertedId));
+            observer.complete();
+        });
+    });
+}
+exports.insertOneObs = insertOneObs;
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects have been inserted
 function insertManyObs(objects, collection) {
