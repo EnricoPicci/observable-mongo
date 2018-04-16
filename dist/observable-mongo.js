@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Observable_1 = require("rxjs/Observable");
 require("rxjs/add/observable/bindNodeCallback");
+require("rxjs/add/observable/fromPromise");
 const _ = require("lodash");
 const mongodb_1 = require("mongodb");
 // ============================ CONNECT ================================
@@ -62,7 +63,7 @@ exports.createCollectionObs = createCollectionObs;
 //     })
 // }
 // ============================ INSERT ONE ================================
-// Returns an Observable which emits when the Objects have been inserted
+// Returns an Observable which emits when the Object has been inserted
 function insertOneObs(object, collection) {
     return Observable_1.Observable.create((observer) => {
         collection.insertOne(object, (err, result) => {
@@ -121,4 +122,16 @@ function dropObs(collection) {
     });
 }
 exports.dropObs = dropObs;
+// ============================ UPDATE ONE ================================
+// Returns an Observable which emits when the Object has been updated
+function updateOneObs(filter, dataToUpdate, collection) {
+    return Observable_1.Observable.fromPromise(collection.updateOne(filter, { $set: dataToUpdate }));
+}
+exports.updateOneObs = updateOneObs;
+// ============================ INSERT MANY ================================
+// Returns an Observable which emits when the Objects have been updated
+function updateManyObs(filter, dataToUpdate, collection) {
+    return Observable_1.Observable.fromPromise(collection.updateMany(filter, { $set: dataToUpdate }));
+}
+exports.updateManyObs = updateManyObs;
 //# sourceMappingURL=observable-mongo.js.map
