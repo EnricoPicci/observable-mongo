@@ -124,14 +124,14 @@ function dropObs(collection) {
 exports.dropObs = dropObs;
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
-function updateOneObs(filter, dataToUpdate, collection) {
-    return Observable_1.Observable.fromPromise(collection.updateOne(filter, { $set: dataToUpdate }));
+function updateOneObs(filter, dataToUpdate, collection, options) {
+    return Observable_1.Observable.fromPromise(collection.updateOne(filter, { $set: dataToUpdate }, options));
 }
 exports.updateOneObs = updateOneObs;
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
-function updateManyObs(filter, dataToUpdate, collection) {
-    return Observable_1.Observable.fromPromise(collection.updateMany(filter, { $set: dataToUpdate }));
+function updateManyObs(filter, dataToUpdate, collection, options) {
+    return Observable_1.Observable.fromPromise(collection.updateMany(filter, { $set: dataToUpdate }, options));
 }
 exports.updateManyObs = updateManyObs;
 //# sourceMappingURL=observable-mongo.js.map

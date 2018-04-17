@@ -120,5 +120,58 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(10000);
+    it(`connects to db, drops a collection, re-create the collection, 
+        inserts one object via update and upsert option, then updates the object 
+        and eventually queries the collection to check the updates`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate1';
+        let connectedClient;
+        const oneObjectToUpsert = { anotherName: 'Pente1' };
+        const oneObjectFilter = oneObjectToUpsert;
+        const oneObjectAnotherProperty = 'Pente property';
+        const oneObjectValuesToUpdate = { oneObjectAnotherProperty };
+        let objectsQueried = new Array();
+        observable_mongo_1.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
+        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_3.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_8.updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)))
+            .subscribe(object => {
+            console.log('obj', object);
+            objectsQueried.push(object);
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            const numberOfObjectsExpected = 1;
+            let errMsg;
+            if (objectsQueried.length !== numberOfObjectsExpected) {
+                errMsg = 'Number of objects queried ' + objectsQueried.length +
+                    ' not equal to ' + numberOfObjectsExpected;
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (objectsQueried[0]['oneObjectAnotherProperty'] !== oneObjectAnotherProperty) {
+                console.log(objectsQueried[0][oneObjectAnotherProperty]);
+                errMsg = 'Object0.0 not as expected ' + objectsQueried[0];
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (objectsQueried[0]['anotherName'] !== oneObjectToUpsert.anotherName) {
+                errMsg = 'Object0.1 not as expected ' + objectsQueried[0];
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (!errMsg) {
+                done();
+            }
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(10000);
 });
 //# sourceMappingURL=observable-mongo.spec.js.map
