@@ -123,13 +123,13 @@ function dropObs(collection) {
 }
 exports.dropObs = dropObs;
 // ============================ UPDATE ONE ================================
-// Returns an Observable which emits when the Object has been updated
+// Returns an Observable which emits when the first Object selected by the filter has been updated
 function updateOneObs(filter, dataToUpdate, collection) {
     return Observable_1.Observable.fromPromise(collection.updateOne(filter, { $set: dataToUpdate }));
 }
 exports.updateOneObs = updateOneObs;
 // ============================ INSERT MANY ================================
-// Returns an Observable which emits when the Objects have been updated
+// Returns an Observable which emits when the Objects selected by the filter have been updated
 function updateManyObs(filter, dataToUpdate, collection) {
     return Observable_1.Observable.fromPromise(collection.updateMany(filter, { $set: dataToUpdate }));
 }
