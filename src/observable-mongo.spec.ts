@@ -169,4 +169,78 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
+    it(`connects to db, drops a collection, re-create the collection, 
+        inserts one object via update and upsert option, then updates the object 
+        and eventually queries the collection to check the updates`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate1';
+        let connectedClient: MongoClient;
+
+        const oneObjectToUpsert = {anotherName: 'Pente1'};
+        const oneObjectFilter = oneObjectToUpsert;
+        const oneObjectAnotherProperty = 'Pente property';
+        const oneObjectValuesToUpdate = {oneObjectAnotherProperty};
+
+        let objectsQueried = new Array<object>();
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => ({collection, client})));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, {upsert: true}).pipe(map(() => collection))),
+            switchMap(collection => updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, {upsert: true}).pipe(map(() => collection))),
+            switchMap(collection => findObs(collection))
+        )
+        .subscribe(
+            object => {
+                console.log('obj', object);
+                objectsQueried.push(object);
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                const numberOfObjectsExpected = 1;
+                let errMsg;
+                if (objectsQueried.length !== numberOfObjectsExpected) {
+                    errMsg = 'Number of objects queried ' + objectsQueried.length + 
+                                    ' not equal to ' + numberOfObjectsExpected;
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (objectsQueried[0]['oneObjectAnotherProperty'] !== oneObjectAnotherProperty) {
+                    console.log(objectsQueried[0][oneObjectAnotherProperty]);
+                    errMsg = 'Object0.0 not as expected ' + objectsQueried[0];
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (objectsQueried[0]['anotherName'] !== oneObjectToUpsert.anotherName) {
+                    errMsg = 'Object0.1 not as expected ' + objectsQueried[0];
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (!errMsg) {
+                    done();
+                }
+                
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(10000);
+
 });
