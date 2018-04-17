@@ -28,7 +28,9 @@
     "tsc": "tsc",
     "test": "npm run tsc  && nyc npm run test-mocha",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepublishOnly": "npm run tsc"
+    "prepublishOnly": "npm version ",
+    "preversion": "npm test && git add -A && git commit -m \"commit\"",
+    "version": "npm run tsc && git add -A dist"
   },
   "nyc": {
     "extension": [
