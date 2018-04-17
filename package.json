@@ -1,6 +1,6 @@
 {
   "name": "observable-mongo",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "description": "Functions that provide 'node mongodb driver APIs' as Observables",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
