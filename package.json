@@ -1,3 +1,4 @@
+
 {
   "name": "observable-mongo",
   "version": "1.5.5",
@@ -29,7 +30,7 @@
     "test": "npm run tsc  && nyc npm run test-mocha",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepublishOnly": "npm version ",
-    "preversion": "npm test && git add -A && git commit -m \"commit\"",
+    "preversion": "npm test",
     "version": "npm run tsc && git add -A dist"
   },
   "nyc": {
