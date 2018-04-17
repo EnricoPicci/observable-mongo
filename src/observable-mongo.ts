@@ -142,13 +142,13 @@ export function dropObs(collection: Collection<any>): Observable<any> {
 
 
 // ============================ UPDATE ONE ================================
-// Returns an Observable which emits when the Object has been updated
+// Returns an Observable which emits when the first Object selected by the filter has been updated
 export function updateOneObs(filter: Object, dataToUpdate: Object, collection: Collection<any>): Observable<UpdateWriteOpResult> {
     return Observable.fromPromise(collection.updateOne(filter, {$set: dataToUpdate}));
 }
 
 // ============================ INSERT MANY ================================
-// Returns an Observable which emits when the Objects have been updated
+// Returns an Observable which emits when the Objects selected by the filter have been updated
 export function updateManyObs(filter: Object, dataToUpdate: Object, collection: Collection<any>): Observable<UpdateWriteOpResult> {
     return Observable.fromPromise(collection.updateMany(filter, {$set: dataToUpdate}));
 }
