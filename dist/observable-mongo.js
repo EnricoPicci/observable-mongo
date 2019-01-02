@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Observable_1 = require("rxjs/Observable");
-require("rxjs/add/observable/bindNodeCallback");
-require("rxjs/add/observable/fromPromise");
+const rxjs_1 = require("rxjs");
+const rxjs_2 = require("rxjs");
+// import 'rxjs/add/observable/bindNodeCallback';
+// import 'rxjs/add/observable/fromPromise';
 const _ = require("lodash");
 const mongodb_1 = require("mongodb");
 // ============================ CONNECT ================================
@@ -12,11 +13,11 @@ function connectObs(uri) {
 }
 exports.connectObs = connectObs;
 const fConnect = (uri, cb) => mongodb_1.MongoClient.connect(uri, cb);
-const _connectObs = Observable_1.Observable.bindNodeCallback(fConnect);
+const _connectObs = rxjs_2.bindNodeCallback(fConnect);
 // ============================ COLLECTIONS ================================
 // Returns an Observable which emits when the collections names are read and ready
 function collectionsObs(db) {
-    return Observable_1.Observable.bindNodeCallback(db.collections).call(db);
+    return rxjs_2.bindNodeCallback(db.collections).call(db);
 }
 exports.collectionsObs = collectionsObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
@@ -32,7 +33,7 @@ exports.collectionsObs = collectionsObs;
 // ============================ COLLECTION ================================
 // Returns an Observable which emits when the collections names are read and ready
 function collectionObs(db, name) {
-    return Observable_1.Observable.bindNodeCallback(db.collection).call(db, name);
+    return rxjs_2.bindNodeCallback(db.collection).call(db, name);
 }
 exports.collectionObs = collectionObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
@@ -48,7 +49,7 @@ exports.collectionObs = collectionObs;
 // ============================ CREATE COLLECTION ================================
 // Returns an Observable which emits when the collection is created
 function createCollectionObs(name, db) {
-    const _createCollectionObs = Observable_1.Observable.bindNodeCallback(db.createCollection).call(db, name);
+    const _createCollectionObs = rxjs_2.bindNodeCallback(db.createCollection).call(db, name);
     return _createCollectionObs;
 }
 exports.createCollectionObs = createCollectionObs;
@@ -65,7 +66,7 @@ exports.createCollectionObs = createCollectionObs;
 // ============================ INSERT ONE ================================
 // Returns an Observable which emits when the Object has been inserted
 function insertOneObs(object, collection) {
-    return Observable_1.Observable.create((observer) => {
+    return rxjs_1.Observable.create((observer) => {
         collection.insertOne(object, (err, result) => {
             if (err)
                 observer.error(err);
@@ -78,7 +79,7 @@ exports.insertOneObs = insertOneObs;
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects have been inserted
 function insertManyObs(objects, collection) {
-    return Observable_1.Observable.create((observer) => {
+    return rxjs_1.Observable.create((observer) => {
         collection.insertMany(objects, (err, result) => {
             if (err)
                 observer.error(err);
@@ -93,7 +94,7 @@ exports.insertManyObs = insertManyObs;
 function findObs(collection, queryConditions) {
     const queryObj = queryConditions ? queryConditions : {};
     const queryCursor = collection.find(queryObj);
-    return Observable_1.Observable.create((observer) => {
+    return rxjs_1.Observable.create((observer) => {
         queryCursor.forEach(doc => observer.next(doc), () => observer.complete());
     });
 }
@@ -111,7 +112,7 @@ exports.findObs = findObs;
 // }
 // ALTERNATIVE VERSION USING "Observable.create" method - preferred to use this version to be able to control the error codes
 function dropObs(collection) {
-    return Observable_1.Observable.create((observer) => {
+    return rxjs_1.Observable.create((observer) => {
         collection.drop((err, results) => {
             // error code 26 states that "NamespaceNotFound", i.e. the collection is not present - in this case we ignore the error
             if (err && err.code !== 26)
@@ -125,13 +126,13 @@ exports.dropObs = dropObs;
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
 function updateOneObs(filter, dataToUpdate, collection, options) {
-    return Observable_1.Observable.fromPromise(collection.updateOne(filter, { $set: dataToUpdate }, options));
+    return rxjs_2.from(collection.updateOne(filter, { $set: dataToUpdate }, options));
 }
 exports.updateOneObs = updateOneObs;
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
 function updateManyObs(filter, dataToUpdate, collection, options) {
-    return Observable_1.Observable.fromPromise(collection.updateMany(filter, { $set: dataToUpdate }, options));
+    return rxjs_2.from(collection.updateMany(filter, { $set: dataToUpdate }, options));
 }
 exports.updateManyObs = updateManyObs;
 //# sourceMappingURL=observable-mongo.js.map

@@ -1,6 +1,4 @@
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/bindNodeCallback';
-import 'rxjs/add/observable/fromPromise';
+import { Observable } from 'rxjs';
 import { MongoClient } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
