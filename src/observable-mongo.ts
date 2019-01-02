@@ -1,9 +1,10 @@
 
-import { Observable } from 'rxjs/Observable';
-import { Observer} from 'rxjs/Observer';
-import {TeardownLogic} from 'rxjs/Subscription';
-import 'rxjs/add/observable/bindNodeCallback';
-import 'rxjs/add/observable/fromPromise';
+import { Observable } from 'rxjs';
+import { Observer} from 'rxjs';
+import {TeardownLogic} from 'rxjs';
+import {bindNodeCallback, from} from 'rxjs';
+// import 'rxjs/add/observable/bindNodeCallback';
+// import 'rxjs/add/observable/fromPromise';
 
 import * as _ from 'lodash';
 
@@ -21,12 +22,12 @@ export function connectObs(uri: string) {
     return _connectObs(uri);
 }
 const fConnect = (uri: string, cb: MongoCallback<MongoClient>) => MongoClient.connect(uri, cb);
-const _connectObs = Observable.bindNodeCallback(fConnect);
+const _connectObs = bindNodeCallback(fConnect);
 
 // ============================ COLLECTIONS ================================
 // Returns an Observable which emits when the collections names are read and ready
 export function collectionsObs(db: Db): Observable<Collection<any>[]> {
-    return Observable.bindNodeCallback(db.collections).call(db);
+    return bindNodeCallback(db.collections).call(db);
 }
 // ALTERNATIVE VERSION USING "Observable.create" method
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
@@ -44,7 +45,7 @@ export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 // ============================ COLLECTION ================================
 // Returns an Observable which emits when the collections names are read and ready
 export function collectionObs(db: Db, name: string): Observable<Collection<any>> {
-    return Observable.bindNodeCallback(db.collection).call(db, name);
+    return bindNodeCallback(db.collection).call(db, name);
 }
 // ALTERNATIVE VERSION USING "Observable.create" method
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
@@ -61,7 +62,7 @@ export function collectionObs(db: Db, name: string): Observable<Collection<any>>
 // ============================ CREATE COLLECTION ================================
 // Returns an Observable which emits when the collection is created
 export function createCollectionObs(name: string, db: Db): Observable<Collection<{}>> {
-    const _createCollectionObs = Observable.bindNodeCallback(db.createCollection).call(db, name);
+    const _createCollectionObs = bindNodeCallback(db.createCollection).call(db, name);
     return _createCollectionObs;
 }
 // ALTERNATIVE VERSION USING "Observable.create" method
@@ -150,7 +151,7 @@ export function updateOneObs(
     collection: Collection<any>,
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
-    return Observable.fromPromise(collection.updateOne(filter, {$set: dataToUpdate}, options));
+    return from(collection.updateOne(filter, {$set: dataToUpdate}, options));
 }
 
 // ============================ INSERT MANY ================================
@@ -161,5 +162,5 @@ export function updateManyObs(
     collection: Collection<any>,
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
-    return Observable.fromPromise(collection.updateMany(filter, {$set: dataToUpdate}, options));
+    return from(collection.updateMany(filter, {$set: dataToUpdate}, options));
 }
