@@ -164,3 +164,26 @@ export function updateManyObs(
 ): Observable<UpdateWriteOpResult> {
     return from(collection.updateMany(filter, {$set: dataToUpdate}, options));
 }
+
+// ============================ AGGREGATE ================================
+// Returns an Observable which emits each document returned by the aggregation logic
+export function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any> {
+    return Observable.create((observer: Observer<any>): TeardownLogic => {
+        // const aggregationCursor = collection.aggregate(aggregationPipeline);
+        // aggregationCursor.each((err, doc) => {
+        //     if (err) observer.error(err);
+        //     observer.next(doc);
+        // })
+        // observer.complete();
+        collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
+            if(err) observer.error(err);
+            aggregationCursor.forEach(
+                doc => {
+                    console.log(doc);
+                    observer.next(doc);
+                },
+                () => observer.complete()
+            )
+        })
+    })
+}

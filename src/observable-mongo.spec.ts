@@ -14,11 +14,11 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { updateOneObs, updateManyObs } from './observable-mongo';
+import { updateOneObs, updateManyObs, aggregateObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
 
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`1 - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then inserts one object and queries the collection`, done => {
 
         const uri = config.mongoUri;
@@ -80,7 +80,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`2 - connects to db, drops a collection, re-create the collection, 
         inserts one object, then updates the object
         then insert many objects and update them and eventually queries the collection
         to check the updates`, done => {
@@ -169,7 +169,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`3 - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, then updates the object 
         and eventually queries the collection to check the updates`, done => {
 
@@ -234,6 +234,67 @@ describe('mongo observable functions chained', () => {
                     done();
                 }
                 
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(10000);
+
+    it(`4 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then run aggregation logic`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollAggregate';
+        let connectedClient: MongoClient;
+
+        const manyObjectsToInsert = [
+            {name: 'Lucy3', class: 'first'},
+            {name: 'Tony3', class: 'second'},
+            {name: 'Andrea3', class: 'first'}
+        ];
+
+        let objectsQueried = new Array<object>();
+        const aggregationPipeline = [{ $group: {_id: {class: "$class"} } }];
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(obectIDs => ({obectIDs, collection})))),
+            switchMap(data => aggregateObs(data.collection, aggregationPipeline))
+        )
+        .subscribe(
+            object => {
+                console.log('obj', object);
+                objectsQueried.push(object);
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                let errMsg: string;
+                if (objectsQueried.length !== 2) {
+                    errMsg = 'Number of objects aggregated ' + objectsQueried.length + 
+                                    ' not equal to number of objects expected';
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (!errMsg) {
+                    done();
+                }
                 connectedClient.close().then(
                     () => console.log('Connection closed'),
                     err => console.error('Error while closing the connection', err)
