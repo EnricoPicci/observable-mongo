@@ -19,3 +19,4 @@ export declare function updateOneObs(filter: Object, dataToUpdate: Object, colle
 export declare function updateManyObs(filter: Object, dataToUpdate: Object, collection: Collection<any>, options?: CommonOptions & {
     upsert?: boolean;
 }): Observable<UpdateWriteOpResult>;
+export declare function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any>;

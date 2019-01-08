@@ -135,4 +135,25 @@ function updateManyObs(filter, dataToUpdate, collection, options) {
     return rxjs_2.from(collection.updateMany(filter, { $set: dataToUpdate }, options));
 }
 exports.updateManyObs = updateManyObs;
+// ============================ AGGREGATE ================================
+// Returns an Observable which emits each document returned by the aggregation logic
+function aggregateObs(collection, aggregationPipeline) {
+    return rxjs_1.Observable.create((observer) => {
+        // const aggregationCursor = collection.aggregate(aggregationPipeline);
+        // aggregationCursor.each((err, doc) => {
+        //     if (err) observer.error(err);
+        //     observer.next(doc);
+        // })
+        // observer.complete();
+        collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
+            if (err)
+                observer.error(err);
+            aggregationCursor.forEach(doc => {
+                console.log(doc);
+                observer.next(doc);
+            }, () => observer.complete());
+        });
+    });
+}
+exports.aggregateObs = aggregateObs;
 //# sourceMappingURL=observable-mongo.js.map

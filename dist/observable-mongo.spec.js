@@ -12,7 +12,7 @@ const observable_mongo_6 = require("./observable-mongo");
 const observable_mongo_7 = require("./observable-mongo");
 const observable_mongo_8 = require("./observable-mongo");
 describe('mongo observable functions chained', () => {
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`1 - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then inserts one object and queries the collection`, done => {
         const uri = config_1.config.mongoUri;
         const dbName = 'mydb';
@@ -54,7 +54,7 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(10000);
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`2 - connects to db, drops a collection, re-create the collection, 
         inserts one object, then updates the object
         then insert many objects and update them and eventually queries the collection
         to check the updates`, done => {
@@ -120,7 +120,7 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(10000);
-    it(`connects to db, drops a collection, re-create the collection, 
+    it(`3 - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, then updates the object 
         and eventually queries the collection to check the updates`, done => {
         const uri = config_1.config.mongoUri;
@@ -164,6 +164,48 @@ describe('mongo observable functions chained', () => {
             }
             if (objectsQueried[0]['anotherName'] !== oneObjectToUpsert.anotherName) {
                 errMsg = 'Object0.1 not as expected ' + objectsQueried[0];
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (!errMsg) {
+                done();
+            }
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(10000);
+    it(`4 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then run aggregation logic`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollAggregate';
+        let connectedClient;
+        const manyObjectsToInsert = [
+            { name: 'Lucy3', class: 'first' },
+            { name: 'Tony3', class: 'second' },
+            { name: 'Andrea3', class: 'first' }
+        ];
+        let objectsQueried = new Array();
+        const aggregationPipeline = [{ $group: { _id: { class: "$class" } } }];
+        observable_mongo_1.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_3.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_8.aggregateObs(data.collection, aggregationPipeline)))
+            .subscribe(object => {
+            console.log('obj', object);
+            objectsQueried.push(object);
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            let errMsg;
+            if (objectsQueried.length !== 2) {
+                errMsg = 'Number of objects aggregated ' + objectsQueried.length +
+                    ' not equal to number of objects expected';
                 console.error(errMsg);
                 done(errMsg);
             }
