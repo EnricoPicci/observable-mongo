@@ -16,4 +16,6 @@ const observable_mongo_6 = require("./observable-mongo");
 exports.findObs = observable_mongo_6.findObs;
 const observable_mongo_7 = require("./observable-mongo");
 exports.dropObs = observable_mongo_7.dropObs;
+const observable_mongo_8 = require("./observable-mongo");
+exports.aggregateObs = observable_mongo_8.aggregateObs;
 //# sourceMappingURL=index.js.map
