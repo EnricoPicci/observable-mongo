@@ -95,10 +95,18 @@ exports.insertOneObs = insertOneObs;
 function insertManyObs(objects, collection) {
     return rxjs_1.Observable.create((observer) => {
         collection.insertMany(objects, (err, result) => {
-            if (err)
+            // In this case it is important to add the "else" condition to discriminate what
+            // we do in case of non error, where we get the "insertedIds" propertyt from the result
+            // If we do not add such "else" the function fails in case an error occurs because we would
+            // try anyways to get "insertedIds" from result, which when an error occurs is null
+            if (err) {
                 observer.error(err);
-            observer.next(_.values(result.insertedIds));
-            observer.complete();
+            }
+            else {
+                observer.next(_.values(result.insertedIds));
+                observer.complete();
+            }
+            ;
         });
     });
 }

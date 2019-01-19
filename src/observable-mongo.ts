@@ -107,9 +107,16 @@ export function insertOneObs(object: Object, collection: Collection<any>): Obser
 export function insertManyObs(objects: Array<Object>, collection: Collection<any>): Observable<Array<ObjectID>> {
     return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
         collection.insertMany(objects, (err, result) => {
-            if(err) observer.error(err);
-            observer.next(_.values(result.insertedIds));
-            observer.complete();
+            // In this case it is important to add the "else" condition to discriminate what
+            // we do in case of non error, where we get the "insertedIds" propertyt from the result
+            // If we do not add such "else" the function fails in case an error occurs because we would
+            // try anyways to get "insertedIds" from result, which when an error occurs is null
+            if (err) {
+                observer.error(err)
+            } else {
+                observer.next(_.values(result.insertedIds));
+                observer.complete();
+            };
         })
     })
 }
