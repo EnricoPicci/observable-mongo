@@ -77,6 +77,19 @@ export function createCollectionObs(name: string, db: Db): Observable<Collection
 // }
 
 
+// ============================ CREATE INDEX ================================
+// Returns an Observable which emits when the index is created - the object notified is the Collection itself
+// ALTERNATIVE VERSION USING "Observable.create" method
+export function createIndexObs(fieldNames: any, options: any, collection: Collection): Observable<Collection> {
+    return Observable.create((observer: Observer<any>): TeardownLogic => {
+        collection.createIndex(fieldNames, options, (err, results) => {
+            if(err) observer.error(err);
+            observer.next(results);
+            observer.complete();
+        })
+    })
+}
+
 // ============================ INSERT ONE ================================
 // Returns an Observable which emits when the Object has been inserted
 export function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID> {
@@ -169,12 +182,6 @@ export function updateManyObs(
 // Returns an Observable which emits each document returned by the aggregation logic
 export function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any> {
     return Observable.create((observer: Observer<any>): TeardownLogic => {
-        // const aggregationCursor = collection.aggregate(aggregationPipeline);
-        // aggregationCursor.each((err, doc) => {
-        //     if (err) observer.error(err);
-        //     observer.next(doc);
-        // })
-        // observer.complete();
         collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
             if(err) observer.error(err);
             aggregationCursor.forEach(

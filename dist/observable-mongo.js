@@ -63,6 +63,20 @@ exports.createCollectionObs = createCollectionObs;
 //         })
 //     })
 // }
+// ============================ CREATE INDEX ================================
+// Returns an Observable which emits when the index is created - the object notified is the Collection itself
+// ALTERNATIVE VERSION USING "Observable.create" method
+function createIndexObs(fieldNames, options, collection) {
+    return rxjs_1.Observable.create((observer) => {
+        collection.createIndex(fieldNames, options, (err, results) => {
+            if (err)
+                observer.error(err);
+            observer.next(results);
+            observer.complete();
+        });
+    });
+}
+exports.createIndexObs = createIndexObs;
 // ============================ INSERT ONE ================================
 // Returns an Observable which emits when the Object has been inserted
 function insertOneObs(object, collection) {
@@ -139,12 +153,6 @@ exports.updateManyObs = updateManyObs;
 // Returns an Observable which emits each document returned by the aggregation logic
 function aggregateObs(collection, aggregationPipeline) {
     return rxjs_1.Observable.create((observer) => {
-        // const aggregationCursor = collection.aggregate(aggregationPipeline);
-        // aggregationCursor.each((err, doc) => {
-        //     if (err) observer.error(err);
-        //     observer.next(doc);
-        // })
-        // observer.complete();
         collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
             if (err)
                 observer.error(err);

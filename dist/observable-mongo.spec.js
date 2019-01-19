@@ -215,5 +215,108 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(10000);
+    // it(`5 - connects to db, drops a collection, re-create the collection, 
+    // inserts some objects, then add an index on a field which contains unique values`, done => {
+    //     const uri = config.mongoUri;
+    //     const dbName = 'mydb';
+    //     const collectionName = 'testCollAggregate';
+    //     // let connectedClient: MongoClient;
+    //     // const manyObjectsToInsert = [
+    //     //     {name: 'Lucy3', class: 'first'},
+    //     //     {name: 'Tony3', class: 'second'},
+    //     //     {name: 'Andrea3', class: 'first'}
+    //     // ];
+    //     // let objectsQueried = new Array<object>();
+    //     // const aggregationPipeline = [{ $group: {_id: {class: "$class"} } }];
+    //     connectObs(uri)
+    //     .pipe(
+    //         switchMap(client => {
+    //             // connectedClient = client;
+    //             const db = client.db(dbName);
+    //             return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+    //         }),
+    //         switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+    //         switchMap(client => {
+    //             const db = client.db(dbName);
+    //             return createCollectionObs(collectionName, db);
+    //         }),
+    //         // switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+    //         switchMap(collection => createIndexObs({name: 1}, null, collection)),
+    //     )
+    //     .subscribe(
+    //         null,
+    //         err => {
+    //             console.error('err', err);
+    //             done(err);
+    //         },
+    //         () => done()
+    //     )
+    // }).timeout(10000);
+    it(`5 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then add an index on a field`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollIndex';
+        let connectedClient;
+        const manyObjectsToInsert = [
+            { name: 'Lucy3', class: 'first' },
+            { name: 'Tony3', class: 'second' },
+            { name: 'Andrea3', class: 'first' }
+        ];
+        observable_mongo_1.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_3.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1 }, null, collection)))
+            .subscribe(null, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            done();
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(10000);
+    it(`6 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then add a unique index on 2 fields which contain some repetitions`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollIndexFail';
+        let connectedClient;
+        const manyObjectsToInsert = [
+            { name: 'Lucy3', class: 'first' },
+            { name: 'Tony3', class: 'second' },
+            { name: 'Andrea3', class: 'first' },
+            { name: 'Lucy3', class: 'first' },
+        ];
+        observable_mongo_1.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_3.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)))
+            .subscribe(null, err => {
+            if (err.code === 11000) {
+                done();
+            }
+            else {
+                console.error('err', err);
+                done(err);
+            }
+            ;
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        }, () => {
+            done();
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+            console.log('Should not reach here');
+            throw ('Should not reach here');
+        });
+    }).timeout(10000);
 });
 //# sourceMappingURL=observable-mongo.spec.js.map

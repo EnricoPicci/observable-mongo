@@ -14,7 +14,7 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { updateOneObs, updateManyObs, aggregateObs } from './observable-mongo';
+import { updateOneObs, updateManyObs, aggregateObs, createIndexObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
 
@@ -299,6 +299,152 @@ describe('mongo observable functions chained', () => {
                     () => console.log('Connection closed'),
                     err => console.error('Error while closing the connection', err)
                 );
+            }
+        )
+
+    }).timeout(10000);
+
+    // it(`5 - connects to db, drops a collection, re-create the collection, 
+    // inserts some objects, then add an index on a field which contains unique values`, done => {
+
+    //     const uri = config.mongoUri;
+    //     const dbName = 'mydb';
+    //     const collectionName = 'testCollAggregate';
+    //     // let connectedClient: MongoClient;
+
+    //     // const manyObjectsToInsert = [
+    //     //     {name: 'Lucy3', class: 'first'},
+    //     //     {name: 'Tony3', class: 'second'},
+    //     //     {name: 'Andrea3', class: 'first'}
+    //     // ];
+
+    //     // let objectsQueried = new Array<object>();
+    //     // const aggregationPipeline = [{ $group: {_id: {class: "$class"} } }];
+
+    //     connectObs(uri)
+    //     .pipe(
+    //         switchMap(client => {
+    //             // connectedClient = client;
+    //             const db = client.db(dbName);
+    //             return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+    //         }),
+    //         switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+    //         switchMap(client => {
+    //             const db = client.db(dbName);
+    //             return createCollectionObs(collectionName, db);
+    //         }),
+    //         // switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+    //         switchMap(collection => createIndexObs({name: 1}, null, collection)),
+    //     )
+    //     .subscribe(
+    //         null,
+    //         err => {
+    //             console.error('err', err);
+    //             done(err);
+    //         },
+    //         () => done()
+    //     )
+
+    // }).timeout(10000);
+
+    it(`5 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then add an index on a field`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollIndex';
+        let connectedClient: MongoClient;
+
+        const manyObjectsToInsert = [
+            {name: 'Lucy3', class: 'first'},
+            {name: 'Tony3', class: 'second'},
+            {name: 'Andrea3', class: 'first'}
+        ];
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+            switchMap(collection => createIndexObs({name: 1}, null, collection)),
+        )
+        .subscribe(
+            null,
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(10000);
+
+    it(`6 - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then add a unique index on 2 fields which contain some repetitions`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollIndexFail';
+        let connectedClient: MongoClient;
+
+        const manyObjectsToInsert = [
+            {name: 'Lucy3', class: 'first'},
+            {name: 'Tony3', class: 'second'},
+            {name: 'Andrea3', class: 'first'},
+            {name: 'Lucy3', class: 'first'},
+        ];
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+            switchMap(collection => createIndexObs({name: 1, class: 1}, {unique: true}, collection)),
+        )
+        .subscribe(
+            null,
+            err => {
+                if (err.code === 11000) {
+                    done();
+                } else {
+                    console.error('err', err);
+                    done(err);
+                };
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+                console.log('Should not reach here');
+                throw('Should not reach here');
             }
         )
 
