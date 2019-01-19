@@ -6,6 +6,7 @@ import { updateOneObs, updateManyObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
 import { aggregateObs } from './observable-mongo';
+import { createIndexObs } from './observable-mongo';
 
 
 
@@ -20,5 +21,6 @@ export { updateOneObs, updateManyObs };
 export { findObs };
 export { dropObs };
 export { aggregateObs };
+export { createIndexObs };
 
 
