@@ -68,7 +68,7 @@ exports.createCollectionObs = createCollectionObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
 function createIndexObs(fieldNames, options, collection) {
     return rxjs_1.Observable.create((observer) => {
-        collection.createIndex(fieldNames, options, (err, results) => {
+        collection.createIndex(fieldNames, options, (err, _results) => {
             if (err)
                 observer.error(err);
             observer.next(collection);
