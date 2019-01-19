@@ -82,7 +82,7 @@ export function createCollectionObs(name: string, db: Db): Observable<Collection
 // ALTERNATIVE VERSION USING "Observable.create" method
 export function createIndexObs(fieldNames: any, options: any, collection: Collection): Observable<Collection> {
     return Observable.create((observer: Observer<any>): TeardownLogic => {
-        collection.createIndex(fieldNames, options, (err, results) => {
+        collection.createIndex(fieldNames, options, (err, _results) => {
             if(err) observer.error(err);
             observer.next(collection);
             observer.complete();

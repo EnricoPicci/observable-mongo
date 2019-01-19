@@ -71,7 +71,7 @@ function createIndexObs(fieldNames, options, collection) {
         collection.createIndex(fieldNames, options, (err, results) => {
             if (err)
                 observer.error(err);
-            observer.next(results);
+            observer.next(collection);
             observer.complete();
         });
     });
