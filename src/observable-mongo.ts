@@ -84,7 +84,7 @@ export function createIndexObs(fieldNames: any, options: any, collection: Collec
     return Observable.create((observer: Observer<any>): TeardownLogic => {
         collection.createIndex(fieldNames, options, (err, results) => {
             if(err) observer.error(err);
-            observer.next(results);
+            observer.next(collection);
             observer.complete();
         })
     })
