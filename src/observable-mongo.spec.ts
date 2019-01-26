@@ -14,7 +14,7 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, removeObs } from './observable-mongo';
+import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, deleteObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
 
@@ -546,7 +546,7 @@ describe('mongo observable functions chained', () => {
                 return createCollectionObs(collectionName, db);
             }),
             switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
-            switchMap(collection => removeObs(selector, collection).pipe(map(() => collection))),
+            switchMap(collection => deleteObs(selector, collection).pipe(map(() => collection))),
             switchMap(collection => findObs(collection)),
             toArray()
         )

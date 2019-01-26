@@ -13,7 +13,7 @@ import { MongoCallback } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
-import {UpdateWriteOpResult, WriteOpResult} from 'mongodb';
+import {UpdateWriteOpResult, DeleteWriteOpResultObject} from 'mongodb';
 import {CommonOptions} from 'mongodb';
 
 // ============================ CONNECT ================================
@@ -188,11 +188,11 @@ export function updateManyObs(
 
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed
-export function removeObs(
+export function deleteObs(
     selector: Object,
     collection: Collection<any>,
-): Observable<WriteOpResult> {
-    return from(collection.remove(selector));
+): Observable<DeleteWriteOpResultObject> {
+    return from(collection.deleteMany(selector));
 }
 
 // ============================ AGGREGATE ================================

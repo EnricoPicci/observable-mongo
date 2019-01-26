@@ -21,5 +21,5 @@ exports.aggregateObs = observable_mongo_8.aggregateObs;
 const observable_mongo_9 = require("./observable-mongo");
 exports.createIndexObs = observable_mongo_9.createIndexObs;
 const observable_mongo_10 = require("./observable-mongo");
-exports.removeObs = observable_mongo_10.removeObs;
+exports.deleteObs = observable_mongo_10.deleteObs;
 //# sourceMappingURL=index.js.map

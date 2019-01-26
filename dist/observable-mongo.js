@@ -159,10 +159,10 @@ function updateManyObs(filter, dataToUpdate, collection, options) {
 exports.updateManyObs = updateManyObs;
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed
-function removeObs(selector, collection) {
-    return rxjs_2.from(collection.remove(selector));
+function deleteObs(selector, collection) {
+    return rxjs_2.from(collection.deleteMany(selector));
 }
-exports.removeObs = removeObs;
+exports.deleteObs = deleteObs;
 // ============================ AGGREGATE ================================
 // Returns an Observable which emits each document returned by the aggregation logic
 function aggregateObs(collection, aggregationPipeline) {

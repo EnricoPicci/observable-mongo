@@ -7,7 +7,7 @@ import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
 import { aggregateObs } from './observable-mongo';
 import { createIndexObs } from './observable-mongo';
-import { removeObs } from './observable-mongo';
+import { deleteObs } from './observable-mongo';
 
 
 
@@ -23,6 +23,6 @@ export { findObs };
 export { dropObs };
 export { aggregateObs };
 export { createIndexObs };
-export { removeObs };
+export { deleteObs };
 
 

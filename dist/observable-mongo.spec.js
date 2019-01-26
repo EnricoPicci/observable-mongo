@@ -371,7 +371,7 @@ describe('mongo observable functions chained', () => {
         }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
             return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.removeObs(selector, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)), operators_1.toArray())
+        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.deleteObs(selector, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)), operators_1.toArray())
             .subscribe(objects => {
             console.log('objects removed', objects);
             let errMsg;

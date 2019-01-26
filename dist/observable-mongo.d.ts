@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
-import { UpdateWriteOpResult, WriteOpResult } from 'mongodb';
+import { UpdateWriteOpResult, DeleteWriteOpResultObject } from 'mongodb';
 import { CommonOptions } from 'mongodb';
 export declare function connectObs(uri: string): Observable<MongoClient>;
 export declare function collectionsObs(db: Db): Observable<Collection<any>[]>;
@@ -20,5 +20,5 @@ export declare function updateOneObs(filter: Object, dataToUpdate: Object, colle
 export declare function updateManyObs(filter: Object, dataToUpdate: Object, collection: Collection<any>, options?: CommonOptions & {
     upsert?: boolean;
 }): Observable<UpdateWriteOpResult>;
-export declare function removeObs(selector: Object, collection: Collection<any>): Observable<WriteOpResult>;
+export declare function deleteObs(selector: Object, collection: Collection<any>): Observable<DeleteWriteOpResultObject>;
 export declare function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any>;
