@@ -1,7 +1,7 @@
 
 import 'mocha';
 
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, toArray } from 'rxjs/operators';
 
 import { MongoClient } from 'mongodb';
 
@@ -14,11 +14,11 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { updateOneObs, updateManyObs, aggregateObs, createIndexObs } from './observable-mongo';
+import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, removeObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
 
-    it(`1 - connects to db, drops a collection, re-create the collection, 
+    it(`1 insertOne - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then inserts one object and queries the collection`, done => {
 
         const uri = config.mongoUri;
@@ -80,7 +80,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`2 - connects to db, drops a collection, re-create the collection, 
+    it(`2 update - connects to db, drops a collection, re-create the collection, 
         inserts one object, then updates the object
         then insert many objects and update them and eventually queries the collection
         to check the updates`, done => {
@@ -169,7 +169,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`3 - connects to db, drops a collection, re-create the collection, 
+    it(`3 update - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, then updates the object 
         and eventually queries the collection to check the updates`, done => {
 
@@ -243,7 +243,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`4 - connects to db, drops a collection, re-create the collection, 
+    it(`4 aggregate - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then run aggregation logic`, done => {
 
         const uri = config.mongoUri;
@@ -304,7 +304,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`5 - connects to db, drops a collection, re-create the collection, 
+    it(`5 add index - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add an index on a field`, done => {
 
         const uri = config.mongoUri;
@@ -350,7 +350,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`6 - connects to db, drops a collection, re-create the collection, 
+    it(`6 add index  - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add a unique index on 2 fields which contain some repetitions`, done => {
 
         const uri = config.mongoUri;
@@ -407,7 +407,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`7 - connects to db, drops a collection, re-create the collection, 
+    it(`7 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key`, done => {
 
         const uri = config.mongoUri;
@@ -460,7 +460,7 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
-    it(`8 - connects to db, drops a collection, re-create the collection, 
+    it(`8 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key using insertMany`, done => {
 
         const uri = config.mongoUri;
@@ -512,6 +512,67 @@ describe('mongo observable functions chained', () => {
                 );
                 console.log('Should not reach here');
                 throw('Should not reach here');
+            }
+        )
+
+    }).timeout(10000);
+
+    it(`9 remove - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then remove them`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollRemove';
+        let connectedClient: MongoClient;
+
+        const manyObjectsToInsert = [
+            {name: 'Lucy3', class: 'remove'},
+            {name: 'Tony3', class: 'remove'},
+            {name: 'Andrea3', class: 'keep'}
+        ];
+
+        const selector = {class: "remove"};
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(() => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+            switchMap(collection => removeObs(selector, collection).pipe(map(() => collection))),
+            switchMap(collection => findObs(collection)),
+            toArray()
+        )
+        .subscribe(
+            objects => {
+                console.log('objects removed', objects);
+                let errMsg: string;
+                if (objects.length !== 1) {
+                    errMsg = 'Number of objects left in the collection ' + objects.length + 
+                                    ' not equal to number of objects expected';
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (!errMsg) {
+                    done();
+                }
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
             }
         )
 

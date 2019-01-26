@@ -151,12 +151,18 @@ function updateOneObs(filter, dataToUpdate, collection, options) {
     return rxjs_2.from(collection.updateOne(filter, { $set: dataToUpdate }, options));
 }
 exports.updateOneObs = updateOneObs;
-// ============================ INSERT MANY ================================
+// ============================ UPDATE MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
 function updateManyObs(filter, dataToUpdate, collection, options) {
     return rxjs_2.from(collection.updateMany(filter, { $set: dataToUpdate }, options));
 }
 exports.updateManyObs = updateManyObs;
+// ============================ REMOVE ================================
+// Returns an Observable which emits when the documents selected via the selector have been removed
+function removeObs(selector, collection) {
+    return rxjs_2.from(collection.remove(selector));
+}
+exports.removeObs = removeObs;
 // ============================ AGGREGATE ================================
 // Returns an Observable which emits each document returned by the aggregation logic
 function aggregateObs(collection, aggregationPipeline) {

@@ -13,7 +13,7 @@ import { MongoCallback } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
-import {UpdateWriteOpResult} from 'mongodb';
+import {UpdateWriteOpResult, WriteOpResult} from 'mongodb';
 import {CommonOptions} from 'mongodb';
 
 // ============================ CONNECT ================================
@@ -174,7 +174,7 @@ export function updateOneObs(
     return from(collection.updateOne(filter, {$set: dataToUpdate}, options));
 }
 
-// ============================ INSERT MANY ================================
+// ============================ UPDATE MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
 export function updateManyObs(
     filter: Object, 
@@ -183,6 +183,16 @@ export function updateManyObs(
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
     return from(collection.updateMany(filter, {$set: dataToUpdate}, options));
+}
+
+
+// ============================ REMOVE ================================
+// Returns an Observable which emits when the documents selected via the selector have been removed
+export function removeObs(
+    selector: Object,
+    collection: Collection<any>,
+): Observable<WriteOpResult> {
+    return from(collection.remove(selector));
 }
 
 // ============================ AGGREGATE ================================
