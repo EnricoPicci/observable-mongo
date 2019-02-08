@@ -22,3 +22,4 @@ export declare function updateManyObs(filter: Object, dataToUpdate: Object, coll
 }): Observable<UpdateWriteOpResult>;
 export declare function deleteObs(selector: Object, collection: Collection<any>): Observable<DeleteWriteOpResultObject>;
 export declare function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any>;
+export declare function distinctObs(collection: Collection<any>, key: string, query?: any, options?: any): Observable<Array<any>>;

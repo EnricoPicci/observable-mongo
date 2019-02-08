@@ -22,4 +22,6 @@ const observable_mongo_9 = require("./observable-mongo");
 exports.createIndexObs = observable_mongo_9.createIndexObs;
 const observable_mongo_10 = require("./observable-mongo");
 exports.deleteObs = observable_mongo_10.deleteObs;
+const observable_mongo_11 = require("./observable-mongo");
+exports.distinctObs = observable_mongo_11.distinctObs;
 //# sourceMappingURL=index.js.map

@@ -203,11 +203,22 @@ export function aggregateObs(collection: Collection<any>, aggregationPipeline: A
             if(err) observer.error(err);
             aggregationCursor.forEach(
                 doc => {
-                    console.log(doc);
                     observer.next(doc);
                 },
                 () => observer.complete()
             )
+        })
+    })
+}
+
+// ============================ DISTINCT ================================
+// Returns an Observable which emits each document returned by the aggregation logic
+export function distinctObs(collection: Collection<any>, key: string, query?: any, options?: any): Observable<Array<any>> {
+    return Observable.create((observer: Observer<any>): TeardownLogic => {
+        collection.distinct(key, query, options, (err, result) => {
+            if(err) observer.error(err);
+            observer.next(result);
+            observer.complete();
         })
     })
 }

@@ -171,11 +171,23 @@ function aggregateObs(collection, aggregationPipeline) {
             if (err)
                 observer.error(err);
             aggregationCursor.forEach(doc => {
-                console.log(doc);
                 observer.next(doc);
             }, () => observer.complete());
         });
     });
 }
 exports.aggregateObs = aggregateObs;
+// ============================ DISTINCT ================================
+// Returns an Observable which emits each document returned by the aggregation logic
+function distinctObs(collection, key, query, options) {
+    return rxjs_1.Observable.create((observer) => {
+        collection.distinct(key, query, options, (err, result) => {
+            if (err)
+                observer.error(err);
+            observer.next(result);
+            observer.complete();
+        });
+    });
+}
+exports.distinctObs = distinctObs;
 //# sourceMappingURL=observable-mongo.js.map

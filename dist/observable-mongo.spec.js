@@ -352,7 +352,7 @@ describe('mongo observable functions chained', () => {
         });
     }).timeout(10000);
     it(`9 remove - connects to db, drops a collection, re-create the collection, 
-        inserts some objects, then remove them`, done => {
+        inserts some objects, then removes them`, done => {
         const uri = config_1.config.mongoUri;
         const dbName = 'mydb';
         const collectionName = 'testCollRemove';
@@ -377,6 +377,49 @@ describe('mongo observable functions chained', () => {
             let errMsg;
             if (objects.length !== 1) {
                 errMsg = 'Number of objects left in the collection ' + objects.length +
+                    ' not equal to number of objects expected';
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (!errMsg) {
+                done();
+            }
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(10000);
+    it(`10 distinct - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then calculates the distinct values`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollDistinct';
+        let connectedClient;
+        const manyObjectsToInsert = [
+            { thekey: { key1: 'abc', key2: 'cde' }, stuff: 'stuff1', event: 'event1' },
+            { thekey: { key1: 'efg', key2: 'xyz' }, stuff: 'stuff2', event: 'event1' },
+            { thekey: { key1: 'abc', key2: 'cde' }, stuff: 'stuff3', event: 'event1' },
+            { thekey: { key1: 'efg', key2: 'xyz' }, stuff: 'stuff4', event: 'event1' },
+            { thekey: { key1: '123', key2: '456' }, stuff: 'stuff4', event: 'event2' },
+            { thekey: { key1: 'abc', key2: 'cde' }, stuff: 'stuff5', event: 'event1' },
+            { thekey: { key1: '123', key2: '456' }, stuff: 'stuff4', event: 'event2' },
+        ];
+        observable_mongo_1.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_3.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.distinctObs(collection, 'thekey', { event: 'event1' })))
+            .subscribe(objects => {
+            let errMsg;
+            // we expect 2 objects, since we select only entries for event1
+            if (objects.length !== 2) {
+                errMsg = 'Number of distinct objects ' + objects.length +
                     ' not equal to number of objects expected';
                 console.error(errMsg);
                 done(errMsg);
