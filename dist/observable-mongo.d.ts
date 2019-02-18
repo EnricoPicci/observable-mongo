@@ -12,7 +12,7 @@ export declare function createCollectionObs(name: string, db: Db): Observable<Co
 export declare function createIndexObs(fieldNames: any, options: any, collection: Collection): Observable<Collection>;
 export declare function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID>;
 export declare function insertManyObs(objects: Array<Object>, collection: Collection<any>): Observable<Array<ObjectID>>;
-export declare function findObs(collection: Collection<any>, queryConditions?: any): Observable<any>;
+export declare function findObs(collection: Collection<any>, queryConditions?: any, options?: any): Observable<any>;
 export declare function dropObs(collection: Collection<any>): Observable<any>;
 export declare function updateOneObs(filter: Object, dataToUpdate: Object, collection: Collection<any>, options?: CommonOptions & {
     upsert?: boolean;

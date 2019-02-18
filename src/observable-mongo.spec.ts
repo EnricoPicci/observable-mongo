@@ -639,4 +639,74 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(10000);
 
+    it(`11 distinct - connects to db, drops a collection, re-create the collection, 
+        inserts some objects, then query some objects with some projection`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollFindProjection';
+        let connectedClient: MongoClient;
+
+        const manyObjectsToInsert = [
+            {thekey: {key1: 'abc', key2: 'cde'}, stuff: 'stuff1', event: 'event1', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: 'efg', key2: 'xyz'}, stuff: 'stuff2', event: 'event1', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: 'abc', key2: 'cde'}, stuff: 'stuff3', event: 'event1', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: 'efg', key2: 'xyz'}, stuff: 'stuff4', event: 'event1', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: '123', key2: '456'}, stuff: 'stuff4', event: 'event2', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: 'abc', key2: 'cde'}, stuff: 'stuff5', event: 'event1', dataNotToProject: 'dataNotToProject'},
+            {thekey: {key1: '123', key2: '456'}, stuff: 'stuff4', event: 'event2', dataNotToProject: 'dataNotToProject'},
+        ];
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(() => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(() => collection))),
+            switchMap(collection => findObs(collection, {event: 'event1'}, {projection: {'dataNotToProject': 0}})),
+            toArray(),
+        )
+        .subscribe(
+            objects => {
+                let errMsg: string;
+                // we expect 5 objects, since we select only entries for event1
+                if (objects.length !== 5) {
+                    errMsg = 'Number of objects ' + objects.length + 
+                                    ' not equal to number of objects expected';
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                // we expect each of the objects retrieve NOT to have 'dataNotToProject' property
+                objects.forEach(obj => {
+                    if (obj.dataNotToProject) {
+                        errMsg = 'dataNotToProject should not be present';
+                        console.error(errMsg);
+                        done(errMsg);
+                    }
+                });
+                if (!errMsg) {
+                    done();
+                }
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(10000);
+
 });

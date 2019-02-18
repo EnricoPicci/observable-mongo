@@ -126,9 +126,10 @@ export function insertManyObs(objects: Array<Object>, collection: Collection<any
 
 // ============================ FIND (query) ================================
 // Returns an Observable which emits each object found by the query
-export function findObs(collection: Collection<any>, queryConditions?: any): Observable<any> {
+export function findObs(collection: Collection<any>, queryConditions?: any, options?: any): Observable<any> {
     const queryObj = queryConditions ? queryConditions : {};
-    const queryCursor = collection.find(queryObj);
+    const optionsObj = options ? options : {};
+    const queryCursor = collection.find(queryObj, optionsObj);
     return Observable.create((observer: Observer<any>): TeardownLogic => {
                             queryCursor.forEach(
                                 doc => observer.next(doc),

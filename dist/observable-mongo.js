@@ -113,9 +113,10 @@ function insertManyObs(objects, collection) {
 exports.insertManyObs = insertManyObs;
 // ============================ FIND (query) ================================
 // Returns an Observable which emits each object found by the query
-function findObs(collection, queryConditions) {
+function findObs(collection, queryConditions, options) {
     const queryObj = queryConditions ? queryConditions : {};
-    const queryCursor = collection.find(queryObj);
+    const optionsObj = options ? options : {};
+    const queryCursor = collection.find(queryObj, optionsObj);
     return rxjs_1.Observable.create((observer) => {
         queryCursor.forEach(doc => observer.next(doc), () => observer.complete());
     });
