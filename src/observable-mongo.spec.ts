@@ -1,11 +1,14 @@
 
 import 'mocha';
+import { expect } from 'chai';
 
-import { switchMap, map, toArray } from 'rxjs/operators';
+import { switchMap, map, delay, toArray, take } from 'rxjs/operators';
 
 import { MongoClient } from 'mongodb';
 
 import {config} from './config';
+
+import { qc } from './observable-mongo';
 
 import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
@@ -14,6 +17,7 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
+import { Subject } from 'rxjs';
 import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, deleteObs, distinctObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
@@ -78,7 +82,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`2 update - connects to db, drops a collection, re-create the collection, 
         inserts one object, then updates the object
@@ -167,7 +171,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`3 update - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, then updates the object 
@@ -241,7 +245,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`4 aggregate - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then run aggregation logic`, done => {
@@ -302,7 +306,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`5 add index - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add an index on a field`, done => {
@@ -348,7 +352,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`6 add index  - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add a unique index on 2 fields which contain some repetitions`, done => {
@@ -405,7 +409,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`7 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key`, done => {
@@ -458,7 +462,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`8 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key using insertMany`, done => {
@@ -515,7 +519,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`9 remove - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then removes them`, done => {
@@ -576,7 +580,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`10 distinct - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then calculates the distinct values`, done => {
@@ -637,7 +641,7 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
 
     it(`11 distinct - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then query some objects with some projection`, done => {
@@ -707,6 +711,73 @@ describe('mongo observable functions chained', () => {
             }
         )
 
-    }).timeout(10000);
+    }).timeout(20000);
+
+    it(`12 find - connects to db, drops a collection, re-create the collection, 
+    inserts some objects, queries the collection and take only the first element
+    This test checks also that the cursor is closed by the tearDownLogic of findObs`, done => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollFindTake1';
+        let connectedClient: MongoClient;
+
+        let objectQueried: any;
+
+        const manyObjectsToInsert = [
+            {name: 'Mary'},
+            {name: 'Tob'},
+            {name: 'Alan'}
+        ];
+
+        const mongoObsCompleted = new Subject<any>();
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(() => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(_ => collection))),
+            switchMap(collection => findObs(collection)),
+            take(1)
+        )
+        .subscribe(
+            obj => {
+                objectQueried = obj;
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                console.log(objectQueried);
+                expect(objectQueried).to.deep.equal(manyObjectsToInsert[0]);
+                expect(qc.isClosed()).to.be.false;
+                mongoObsCompleted.next();
+            }
+        )
+
+        mongoObsCompleted
+        .pipe(
+            delay(0)
+        )
+        .subscribe(
+            () => {
+                expect(qc.isClosed()).to.be.true;
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
 
 });

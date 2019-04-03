@@ -111,14 +111,23 @@ function insertManyObs(objects, collection) {
     });
 }
 exports.insertManyObs = insertManyObs;
-// ============================ FIND (query) ================================
-// Returns an Observable which emits each object found by the query
 function findObs(collection, queryConditions, options) {
     const queryObj = queryConditions ? queryConditions : {};
     const optionsObj = options ? options : {};
     const queryCursor = collection.find(queryObj, optionsObj);
+    exports.qc = queryCursor;
     return rxjs_1.Observable.create((observer) => {
-        queryCursor.forEach(doc => observer.next(doc), () => observer.complete());
+        queryCursor.forEach(doc => {
+            try {
+                observer.next(doc);
+            }
+            catch (err) {
+                observer.error(err);
+            }
+        }, () => observer.complete());
+        return () => {
+            queryCursor.close();
+        };
     });
 }
 exports.findObs = findObs;
@@ -167,15 +176,31 @@ exports.deleteObs = deleteObs;
 // ============================ AGGREGATE ================================
 // Returns an Observable which emits each document returned by the aggregation logic
 function aggregateObs(collection, aggregationPipeline) {
+    const aggregationCursor = collection.aggregate(aggregationPipeline);
     return rxjs_1.Observable.create((observer) => {
-        collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
-            if (err)
-                observer.error(err);
-            aggregationCursor.forEach(doc => {
+        aggregationCursor.forEach(doc => {
+            try {
                 observer.next(doc);
-            }, () => observer.complete());
-        });
+            }
+            catch (err) {
+                observer.error(err);
+            }
+        }, () => observer.complete());
+        return () => {
+            aggregationCursor.close();
+        };
     });
+    // return Observable.create((observer: Observer<any>): TeardownLogic => {
+    //     collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
+    //         if(err) observer.error(err);
+    //         aggregationCursor.forEach(
+    //             doc => {
+    //                 observer.next(doc);
+    //             },
+    //             () => observer.complete()
+    //         )
+    //     });
+    // })
 }
 exports.aggregateObs = aggregateObs;
 // ============================ DISTINCT ================================

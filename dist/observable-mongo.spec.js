@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 require("mocha");
+const chai_1 = require("chai");
 const operators_1 = require("rxjs/operators");
 const config_1 = require("./config");
 const observable_mongo_1 = require("./observable-mongo");
@@ -11,6 +12,8 @@ const observable_mongo_5 = require("./observable-mongo");
 const observable_mongo_6 = require("./observable-mongo");
 const observable_mongo_7 = require("./observable-mongo");
 const observable_mongo_8 = require("./observable-mongo");
+const rxjs_1 = require("rxjs");
+const observable_mongo_9 = require("./observable-mongo");
 describe('mongo observable functions chained', () => {
     it(`1 insertOne - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then inserts one object and queries the collection`, done => {
@@ -25,15 +28,15 @@ describe('mongo observable functions chained', () => {
         ];
         const oneObjectToInsert = { anotherName: 'Buba1' };
         let objectsQueried = new Array();
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(_ => collection))), operators_1.switchMap(collection => observable_mongo_5.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_6.findObs(data.collection)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(_ => collection))), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_7.findObs(data.collection)))
             .subscribe(object => {
             console.log('obj', object);
             objectsQueried.push(object);
@@ -53,7 +56,7 @@ describe('mongo observable functions chained', () => {
             }
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`2 update - connects to db, drops a collection, re-create the collection, 
         inserts one object, then updates the object
         then insert many objects and update them and eventually queries the collection
@@ -74,15 +77,15 @@ describe('mongo observable functions chained', () => {
         const manyObjectsAnotherProperty = 'One more';
         const manyObjectsValuesToUpdate = { manyObjectsAnotherProperty };
         let objectsQueried = new Array();
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_5.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.updateManyObs(manyObjectsFilter, manyObjectsValuesToUpdate, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.updateManyObs(manyObjectsFilter, manyObjectsValuesToUpdate, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)))
             .subscribe(object => {
             console.log('obj', object);
             objectsQueried.push(object);
@@ -119,7 +122,7 @@ describe('mongo observable functions chained', () => {
             }
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`3 update - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, then updates the object 
         and eventually queries the collection to check the updates`, done => {
@@ -132,15 +135,15 @@ describe('mongo observable functions chained', () => {
         const oneObjectAnotherProperty = 'Pente property';
         const oneObjectValuesToUpdate = { oneObjectAnotherProperty };
         let objectsQueried = new Array();
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_8.updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_9.updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)))
             .subscribe(object => {
             console.log('obj', object);
             objectsQueried.push(object);
@@ -172,7 +175,7 @@ describe('mongo observable functions chained', () => {
             }
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`4 aggregate - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then run aggregation logic`, done => {
         const uri = config_1.config.mongoUri;
@@ -186,15 +189,15 @@ describe('mongo observable functions chained', () => {
         ];
         let objectsQueried = new Array();
         const aggregationPipeline = [{ $group: { _id: { class: "$class" } } }];
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_8.aggregateObs(data.collection, aggregationPipeline)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_9.aggregateObs(data.collection, aggregationPipeline)))
             .subscribe(object => {
             console.log('obj', object);
             objectsQueried.push(object);
@@ -214,7 +217,7 @@ describe('mongo observable functions chained', () => {
             }
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`5 add index - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add an index on a field`, done => {
         const uri = config_1.config.mongoUri;
@@ -226,15 +229,15 @@ describe('mongo observable functions chained', () => {
             { name: 'Tony3', class: 'second' },
             { name: 'Andrea3', class: 'first' }
         ];
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1 }, null, collection)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.createIndexObs({ name: 1 }, null, collection)))
             .subscribe(null, err => {
             console.error('err', err);
             done(err);
@@ -242,7 +245,7 @@ describe('mongo observable functions chained', () => {
             done();
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`6 add index  - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then add a unique index on 2 fields which contain some repetitions`, done => {
         const uri = config_1.config.mongoUri;
@@ -255,15 +258,15 @@ describe('mongo observable functions chained', () => {
             { name: 'Andrea3', class: 'first' },
             { name: 'Lucy3', class: 'first' },
         ];
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)))
             .subscribe(null, err => {
             if (err.code === 11000) {
                 done();
@@ -280,7 +283,7 @@ describe('mongo observable functions chained', () => {
             console.log('Should not reach here');
             throw ('Should not reach here');
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`7 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key`, done => {
         const uri = config_1.config.mongoUri;
@@ -288,15 +291,15 @@ describe('mongo observable functions chained', () => {
         const collectionName = 'testCollIndexFail';
         let connectedClient;
         const objectToInsert = { name: 'Tom', class: 'first' };
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)), operators_1.switchMap(collection => observable_mongo_5.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_5.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_9.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))))
             .subscribe(null, err => {
             if (err.code === 11000) {
                 done();
@@ -313,7 +316,7 @@ describe('mongo observable functions chained', () => {
             console.log('Should not reach here');
             throw ('Should not reach here');
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`8 add index  - connects to db, drops a collection, re-create the collection, 
         adds a unique index and then tries to write 2 objects with the same key using insertMany`, done => {
         const uri = config_1.config.mongoUri;
@@ -321,15 +324,15 @@ describe('mongo observable functions chained', () => {
         const collectionName = 'testCollIndexFail';
         let connectedClient;
         const objectToInsert = { name: 'Tom', class: 'first' };
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_8.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)), operators_1.switchMap(collection => observable_mongo_5.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_4.insertManyObs([objectToInsert], collection).pipe(operators_1.map(() => collection))))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_9.createIndexObs({ name: 1, class: 1 }, { unique: true }, collection)), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(objectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_5.insertManyObs([objectToInsert], collection).pipe(operators_1.map(() => collection))))
             .subscribe(null, err => {
             if (err.code === 11000) {
                 // I execute done() after a timeout to make sure I test the fact that the 'next' method within the createOsbervable
@@ -350,7 +353,7 @@ describe('mongo observable functions chained', () => {
             console.log('Should not reach here');
             throw ('Should not reach here');
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`9 remove - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then removes them`, done => {
         const uri = config_1.config.mongoUri;
@@ -363,15 +366,15 @@ describe('mongo observable functions chained', () => {
             { name: 'Andrea3', class: 'keep' }
         ];
         const selector = { class: "remove" };
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.deleteObs(selector, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection)), operators_1.toArray())
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.deleteObs(selector, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)), operators_1.toArray())
             .subscribe(objects => {
             console.log('objects removed', objects);
             let errMsg;
@@ -390,7 +393,7 @@ describe('mongo observable functions chained', () => {
         }, () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`10 distinct - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then calculates the distinct values`, done => {
         const uri = config_1.config.mongoUri;
@@ -406,15 +409,15 @@ describe('mongo observable functions chained', () => {
             { thekey: { key1: 'abc', key2: 'cde' }, stuff: 'stuff5', event: 'event1' },
             { thekey: { key1: '123', key2: '456' }, stuff: 'stuff4', event: 'event2' },
         ];
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_8.distinctObs(collection, 'thekey', { event: 'event1' })))
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.distinctObs(collection, 'thekey', { event: 'event1' })))
             .subscribe(objects => {
             let errMsg;
             // we expect 2 objects, since we select only entries for event1
@@ -433,7 +436,7 @@ describe('mongo observable functions chained', () => {
         }, () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
     it(`11 distinct - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then query some objects with some projection`, done => {
         const uri = config_1.config.mongoUri;
@@ -449,15 +452,15 @@ describe('mongo observable functions chained', () => {
             { thekey: { key1: 'abc', key2: 'cde' }, stuff: 'stuff5', event: 'event1', dataNotToProject: 'dataNotToProject' },
             { thekey: { key1: '123', key2: '456' }, stuff: 'stuff4', event: 'event2', dataNotToProject: 'dataNotToProject' },
         ];
-        observable_mongo_1.connectObs(uri)
+        observable_mongo_2.connectObs(uri)
             .pipe(operators_1.switchMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
-            return observable_mongo_2.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_7.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
             const db = client.db(dbName);
-            return observable_mongo_3.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_4.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_6.findObs(collection, { event: 'event1' }, { projection: { 'dataNotToProject': 0 } })), operators_1.toArray())
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection, { event: 'event1' }, { projection: { 'dataNotToProject': 0 } })), operators_1.toArray())
             .subscribe(objects => {
             let errMsg;
             // we expect 5 objects, since we select only entries for event1
@@ -484,6 +487,48 @@ describe('mongo observable functions chained', () => {
         }, () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
-    }).timeout(10000);
+    }).timeout(20000);
+    it(`12 find - connects to db, drops a collection, re-create the collection, 
+    inserts some objects, queries the collection and take only the first element
+    This test checks also that the cursor is closed by the tearDownLogic of findObs`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollFindTake1';
+        let connectedClient;
+        let objectQueried;
+        const manyObjectsToInsert = [
+            { name: 'Mary' },
+            { name: 'Tob' },
+            { name: 'Alan' }
+        ];
+        const mongoObsCompleted = new rxjs_1.Subject();
+        observable_mongo_2.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(() => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(_ => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)), operators_1.take(1))
+            .subscribe(obj => {
+            objectQueried = obj;
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            console.log(objectQueried);
+            chai_1.expect(objectQueried).to.deep.equal(manyObjectsToInsert[0]);
+            chai_1.expect(observable_mongo_1.qc.isClosed()).to.be.false;
+            mongoObsCompleted.next();
+        });
+        mongoObsCompleted
+            .pipe(operators_1.delay(0))
+            .subscribe(() => {
+            chai_1.expect(observable_mongo_1.qc.isClosed()).to.be.true;
+            done();
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(20000);
 });
 //# sourceMappingURL=observable-mongo.spec.js.map

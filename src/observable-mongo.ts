@@ -126,15 +126,27 @@ export function insertManyObs(objects: Array<Object>, collection: Collection<any
 
 // ============================ FIND (query) ================================
 // Returns an Observable which emits each object found by the query
+export let qc; // qc is exported only to allow tests on the correct closing of the cursor
 export function findObs(collection: Collection<any>, queryConditions?: any, options?: any): Observable<any> {
     const queryObj = queryConditions ? queryConditions : {};
     const optionsObj = options ? options : {};
     const queryCursor = collection.find(queryObj, optionsObj);
+    qc = queryCursor;
     return Observable.create((observer: Observer<any>): TeardownLogic => {
                             queryCursor.forEach(
-                                doc => observer.next(doc),
+                                doc => {
+                                    try {
+                                        observer.next(doc)
+                                    }
+                                    catch(err) {
+                                        observer.error(err)
+                                    }
+                                },
                                 () => observer.complete()
                             )
+                            return () => {
+                                queryCursor.close();
+                            }
                         })
 }
 // THE FOLLOWING VERSION CAN NOT BE USED SINCE IT NEVER FIRES THE COMPLETE EVENT
@@ -199,17 +211,35 @@ export function deleteObs(
 // ============================ AGGREGATE ================================
 // Returns an Observable which emits each document returned by the aggregation logic
 export function aggregateObs(collection: Collection<any>, aggregationPipeline: Array<any>): Observable<any> {
+    const aggregationCursor: any = collection.aggregate(aggregationPipeline);
     return Observable.create((observer: Observer<any>): TeardownLogic => {
-        collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
-            if(err) observer.error(err);
-            aggregationCursor.forEach(
-                doc => {
-                    observer.next(doc);
-                },
-                () => observer.complete()
-            )
-        })
+        aggregationCursor.forEach(
+            doc => {
+                try {
+                    observer.next(doc)
+                }
+                catch(err) {
+                    observer.error(err)
+                }
+            },
+            () => observer.complete()
+        )
+        return () => {
+            aggregationCursor.close();
+        }
     })
+
+    // return Observable.create((observer: Observer<any>): TeardownLogic => {
+    //     collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
+    //         if(err) observer.error(err);
+    //         aggregationCursor.forEach(
+    //             doc => {
+    //                 observer.next(doc);
+    //             },
+    //             () => observer.complete()
+    //         )
+    //     });
+    // })
 }
 
 // ============================ DISTINCT ================================
