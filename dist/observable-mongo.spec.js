@@ -530,5 +530,52 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(20000);
+    it(`13 replace - connects to db, drops a collection, re-create the collection, 
+        inserts one object, then replaces the object
+        then insert many objects and replace them and eventually queries the collection
+        to check the replacements`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate';
+        let connectedClient;
+        const oneObjectToInsert = { anotherName: 'Buba2' };
+        const oneObjectFilter = oneObjectToInsert;
+        const oneObjectToReplace = { anotherName: 'One more' };
+        let objectsQueried = new Array();
+        observable_mongo_2.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_1.replaceOneObs(oneObjectFilter, oneObjectToReplace, collection).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)))
+            .subscribe(object => {
+            console.log('obj', object);
+            objectsQueried.push(object);
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            const numberOfObjectsExpected = 1;
+            let errMsg;
+            if (objectsQueried.length !== numberOfObjectsExpected) {
+                errMsg = 'Number of objects queried ' + objectsQueried.length +
+                    ' not equal to ' + numberOfObjectsExpected;
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (objectsQueried[0]['anotherName'] !== oneObjectToReplace.anotherName) {
+                errMsg = 'Object1 not as expected ' + objectsQueried[0];
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (!errMsg) {
+                done();
+            }
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(20000);
 });
 //# sourceMappingURL=observable-mongo.spec.js.map
