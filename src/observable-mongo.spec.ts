@@ -8,7 +8,7 @@ import { MongoClient } from 'mongodb';
 
 import {config} from './config';
 
-import { qc } from './observable-mongo';
+import { qc, replaceOneObs } from './observable-mongo';
 
 import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
@@ -780,4 +780,71 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(20000);
 
+    it(`13 replace - connects to db, drops a collection, re-create the collection, 
+        inserts one object, then replaces the object
+        then insert many objects and replace them and eventually queries the collection
+        to check the replacements`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate';
+        let connectedClient: MongoClient;
+
+        const oneObjectToInsert = {anotherName: 'Buba2'};
+        const oneObjectFilter = oneObjectToInsert;
+        const oneObjectToReplace = {anotherName: 'One more'};
+
+        let objectsQueried = new Array<object>();
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => ({collection, client})));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => insertOneObs(oneObjectToInsert, collection).pipe(map(() => collection))),
+            switchMap(collection => replaceOneObs(oneObjectFilter, oneObjectToReplace, collection).pipe(map(() => collection))),
+            switchMap(collection => findObs(collection))
+        )
+        .subscribe(
+            object => {
+                console.log('obj', object);
+                objectsQueried.push(object);
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                const numberOfObjectsExpected = 1;
+                let errMsg;
+                if (objectsQueried.length !== numberOfObjectsExpected) {
+                    errMsg = 'Number of objects queried ' + objectsQueried.length + 
+                                    ' not equal to ' + numberOfObjectsExpected;
+                    console.error(errMsg);
+                    done(errMsg);
+                }                
+                if (objectsQueried[0]['anotherName'] !== oneObjectToReplace.anotherName) {
+                    errMsg = 'Object1 not as expected ' + objectsQueried[0];
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (!errMsg) {
+                    done();
+                }
+                
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
 });

@@ -13,7 +13,7 @@ import { MongoCallback } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
-import {UpdateWriteOpResult, DeleteWriteOpResultObject} from 'mongodb';
+import {UpdateWriteOpResult, DeleteWriteOpResultObject, ReplaceWriteOpResult} from 'mongodb';
 import {CommonOptions} from 'mongodb';
 
 // ============================ CONNECT ================================
@@ -198,6 +198,16 @@ export function updateManyObs(
     return from(collection.updateMany(filter, {$set: dataToUpdate}, options));
 }
 
+// =========================== REPLACE ONE =================================
+// Returns an Observable which emits when the Object selected by the filter is replaced
+export function replaceOneObs(
+    filter: Object,
+    documentToReplaceWith: Object,
+    collection: Collection<any>,
+    options?: CommonOptions & {upsert?: boolean}
+): Observable<ReplaceWriteOpResult> {
+    return from(collection.replaceOne(filter, documentToReplaceWith, options));
+}
 
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed

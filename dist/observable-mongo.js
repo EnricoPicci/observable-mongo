@@ -167,6 +167,12 @@ function updateManyObs(filter, dataToUpdate, collection, options) {
     return rxjs_2.from(collection.updateMany(filter, { $set: dataToUpdate }, options));
 }
 exports.updateManyObs = updateManyObs;
+// =========================== REPLACE ONE =================================
+// Returns an Observable which emits when the Object selected by the filter is replaced
+function replaceOneObs(filter, documentToReplaceWith, collection, options) {
+    return rxjs_2.from(collection.replaceOne(filter, documentToReplaceWith, options));
+}
+exports.replaceOneObs = replaceOneObs;
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed
 function deleteObs(selector, collection) {
