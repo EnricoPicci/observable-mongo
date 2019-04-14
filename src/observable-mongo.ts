@@ -238,18 +238,6 @@ export function aggregateObs(collection: Collection<any>, aggregationPipeline: A
             aggregationCursor.close();
         }
     })
-
-    // return Observable.create((observer: Observer<any>): TeardownLogic => {
-    //     collection.aggregate(aggregationPipeline, (err, aggregationCursor) => {
-    //         if(err) observer.error(err);
-    //         aggregationCursor.forEach(
-    //             doc => {
-    //                 observer.next(doc);
-    //             },
-    //             () => observer.complete()
-    //         )
-    //     });
-    // })
 }
 
 // ============================ DISTINCT ================================

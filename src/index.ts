@@ -9,6 +9,7 @@ import { aggregateObs } from './observable-mongo';
 import { createIndexObs } from './observable-mongo';
 import { deleteObs } from './observable-mongo';
 import { distinctObs } from './observable-mongo';
+import { replaceOneObs } from './observable-mongo';
 
 export { connectObs };
 export { collectionObs };
@@ -21,5 +22,6 @@ export { aggregateObs };
 export { createIndexObs };
 export { deleteObs };
 export { distinctObs };
+export { replaceOneObs };
 
 
