@@ -16,12 +16,13 @@
     "nyc": "^13.3.0",
     "source-map-support": "^0.5.3",
     "ts-node": "^7.0.1",
-    "typescript": "^3.2.2"
+    "typescript": "^3.4.3"
   },
   "dependencies": {
     "lodash": "^4.17.11",
     "mongodb": "^3.0.3",
-    "rxjs": "^6.3.3"
+    "observable-http-request": "^1.1.2",
+    "rxjs": "^6.4.0"
   },
   "scripts": {
     "test-mocha": "mocha -r ts-node/register --require source-map-support/register --recursive src/**/*.spec.ts ",
