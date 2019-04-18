@@ -6,10 +6,11 @@
 import { switchMap, tap,  mergeMap, map, } from 'rxjs/operators';
 import { MongoClient, Collection } from 'mongodb';
 
-import {connectObs, dropObs, createCollectionObs, insertManyObs, findObs} from '../observable-mongo';
+import {connectObs, dropObs, createCollectionObs, insertManyObs, findObs} from '../src/observable-mongo';
 import {httpGetRequestObs} from 'observable-http-request';
+import {deleteDirObs, writeFileObs} from 'observable-fs';
 
-import {config} from '../config';
+import {config} from '../src/config';
 
 // setup - load the authors in the collection
 const uri = config.mongoUri;
@@ -25,6 +26,8 @@ const authors = [
     {name: 'Richler'}
 ];
 
+const directoryTitles = './examples/titles/';
+
 const setupObs = connectObs(uri)
 .pipe(
     tap(client => {
@@ -37,7 +40,9 @@ const setupObs = connectObs(uri)
         const db = connectedClient.db(dbName);
         return createCollectionObs(collectionName, db);
     }),
-    switchMap(collection => insertManyObs(authors, collection))
+    switchMap(collection => insertManyObs(authors, collection)),
+    switchMap(() => deleteDirObs(directoryTitles)),
+    
 );
 
 // when the setup completes we start the logic
@@ -57,10 +62,10 @@ setupObs
         const titles = bookTitles.length > 5 ? bookTitles.slice(0,5) : bookTitles;
         return {
             author_searched,
-            author_found: dataFetched.author_name,
             titles
         }
     }),
+    switchMap(data => writeFileObs(directoryTitles + data.author_searched + '.txt', data.titles))
 )
 .subscribe(
     data => console.log(JSON.stringify(data, null, 2)),
