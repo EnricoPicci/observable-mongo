@@ -176,6 +176,77 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(20000);
+    it(`3.1.1 check if an empty object contains an update operator`, () => {
+        const data = {};
+        chai_1.expect(observable_mongo_1.containsUpdateOperators(data)).to.be.false;
+    });
+    it(`3.1.2 check if an object with data fields contains an update operator`, () => {
+        const data = { firstName: 'a', lastName: 'b' };
+        chai_1.expect(observable_mongo_1.containsUpdateOperators(data)).to.be.false;
+    });
+    it(`3.1.3 check if an object with update operators fields contains an update operator`, () => {
+        const data = {
+            '$set': {
+                county: 'Pierce',
+                state: 'WA'
+            },
+            '$push': {
+                zips: {
+                    '$each': ['98499',
+                        '98499']
+                }
+            }
+        };
+        chai_1.expect(observable_mongo_1.containsUpdateOperators(data)).to.be.true;
+    });
+    it.only(`3.2 update - connects to db, drops a collection, re-create the collection, 
+        inserts one object via update and upsert option, 
+        then adds a new item in an array contained in the object just added via $push update operator
+        and eventually queries the collection to check the updates`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate32';
+        let connectedClient;
+        const oneObjectToUpsert = { anotherName: 'Pente32', anArray: ['first item'] };
+        const oneObjectFilter = oneObjectToUpsert;
+        const oneObjectAnotherItemToAddToArray = 'second item';
+        const oneObjectValuesToUpdate = { $push: { anArray: oneObjectAnotherItemToAddToArray } };
+        let objectQueried;
+        observable_mongo_2.connectObs(uri)
+            .pipe(operators_1.switchMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => ({ collection, client })));
+        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_4.createCollectionObs(collectionName, db);
+        }), operators_1.switchMap(collection => observable_mongo_9.updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_9.updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, { upsert: true }).pipe(operators_1.map(() => collection))), operators_1.switchMap(collection => observable_mongo_7.findObs(collection)))
+            .subscribe(object => {
+            console.log('obj', object);
+            objectQueried = object;
+        }, err => {
+            console.error('err', err);
+            done(err);
+        }, () => {
+            let errMsg;
+            if (objectQueried.anArray.length !== 2) {
+                console.log(objectQueried);
+                errMsg = 'Object32 not as expected ' + objectQueried;
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (objectQueried.anArray[1] !== oneObjectAnotherItemToAddToArray) {
+                console.log(objectQueried);
+                errMsg = 'Item not added to the array in the object ' + objectQueried;
+                console.error(errMsg);
+                done(errMsg);
+            }
+            if (!errMsg) {
+                done();
+            }
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(20000);
     it(`4 aggregate - connects to db, drops a collection, re-create the collection, 
         inserts some objects, then run aggregation logic`, done => {
         const uri = config_1.config.mongoUri;

@@ -158,15 +158,28 @@ exports.dropObs = dropObs;
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
 function updateOneObs(filter, dataToUpdate, collection, options) {
-    return rxjs_2.from(collection.updateOne(filter, { $set: dataToUpdate }, options));
+    const data = buildObjectForUpdate(dataToUpdate);
+    return rxjs_2.from(collection.updateOne(filter, data, options));
 }
 exports.updateOneObs = updateOneObs;
 // ============================ UPDATE MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
 function updateManyObs(filter, dataToUpdate, collection, options) {
-    return rxjs_2.from(collection.updateMany(filter, { $set: dataToUpdate }, options));
+    const data = buildObjectForUpdate(dataToUpdate);
+    return rxjs_2.from(collection.updateMany(filter, data, options));
 }
 exports.updateManyObs = updateManyObs;
+// this function is exported only to allow test
+function containsUpdateOperators(data) {
+    const keys = Object.keys(data);
+    const firstKey = keys.length > 0 ? keys[0] : null;
+    const firstCharOfFirstKey = firstKey ? firstKey[0] : null;
+    return firstCharOfFirstKey === '$';
+}
+exports.containsUpdateOperators = containsUpdateOperators;
+function buildObjectForUpdate(data) {
+    return containsUpdateOperators(data) ? data : { $set: data };
+}
 // =========================== REPLACE ONE =================================
 // Returns an Observable which emits when the Object selected by the filter is replaced
 function replaceOneObs(filter, documentToReplaceWith, collection, options) {

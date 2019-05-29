@@ -178,24 +178,42 @@ export function dropObs(collection: Collection<any>): Observable<any> {
 
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
+// if the dataToUpdate object contains a mongo update operator (https://docs.mongodb.com/manual/reference/operator/update/)
+// then the object is passed as it is to the update function
+// otherwise, if it is a simple data object, the $set operator is used as default
 export function updateOneObs(
     filter: Object, 
     dataToUpdate: Object, 
     collection: Collection<any>,
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
-    return from(collection.updateOne(filter, {$set: dataToUpdate}, options));
+    const data = buildObjectForUpdate(dataToUpdate);
+    return from(collection.updateOne(filter, data, options));
 }
 
 // ============================ UPDATE MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
+// if the dataToUpdate object contains a mongo update operator (https://docs.mongodb.com/manual/reference/operator/update/)
+// then the object is passed as it is to the update function
+// otherwise, if it is a simple data object, the $set operator is used as default
 export function updateManyObs(
     filter: Object, 
     dataToUpdate: Object, 
     collection: Collection<any>,
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
-    return from(collection.updateMany(filter, {$set: dataToUpdate}, options));
+    const data = buildObjectForUpdate(dataToUpdate);
+    return from(collection.updateMany(filter, data, options));
+}
+// this function is exported only to allow test
+export function containsUpdateOperators(data: any) {
+    const keys = Object.keys(data);
+    const firstKey = keys.length > 0 ? keys[0] : null;
+    const firstCharOfFirstKey = firstKey ? firstKey[0] : null;
+    return firstCharOfFirstKey === '$';
+}
+function buildObjectForUpdate(data) {
+    return containsUpdateOperators(data) ? data : {$set: data};
 }
 
 // =========================== REPLACE ONE =================================

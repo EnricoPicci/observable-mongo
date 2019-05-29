@@ -8,7 +8,7 @@ import { MongoClient } from 'mongodb';
 
 import {config} from './config';
 
-import { qc, replaceOneObs } from './observable-mongo';
+import { qc, replaceOneObs, containsUpdateOperators } from './observable-mongo';
 
 import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
@@ -231,6 +231,99 @@ describe('mongo observable functions chained', () => {
                 }
                 if (objectsQueried[0]['anotherName'] !== oneObjectToUpsert.anotherName) {
                     errMsg = 'Object0.1 not as expected ' + objectsQueried[0];
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (!errMsg) {
+                    done();
+                }
+                
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+
+    it(`3.1.1 check if an empty object contains an update operator`, () => {
+        const data = {};
+        expect(containsUpdateOperators(data)).to.be.false;
+    });
+    it(`3.1.2 check if an object with data fields contains an update operator`, () => {
+        const data = {firstName: 'a', lastName: 'b'};
+        expect(containsUpdateOperators(data)).to.be.false;
+    });
+    it(`3.1.3 check if an object with update operators fields contains an update operator`, () => {
+        const data = {
+            '$set': {
+              county: 'Pierce',
+              state: 'WA'
+            },
+            '$push': {
+              zips: {
+                '$each': ['98499',
+                '98499']
+              }
+            }
+          };
+        expect(containsUpdateOperators(data)).to.be.true;
+    });
+
+    it(`3.2 update - connects to db, drops a collection, re-create the collection, 
+        inserts one object via update and upsert option, 
+        then adds a new item in an array contained in the object just added via $push update operator
+        and eventually queries the collection to check the updates`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollUpdate32';
+        let connectedClient: MongoClient;
+
+        const oneObjectToUpsert = {anotherName: 'Pente32', anArray: ['first item']};
+        const oneObjectFilter = oneObjectToUpsert;
+        const oneObjectAnotherItemToAddToArray = 'second item';
+        const oneObjectValuesToUpdate = {$push: {anArray: oneObjectAnotherItemToAddToArray}};
+
+        let objectQueried;
+
+        connectObs(uri)
+        .pipe(
+            switchMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => ({collection, client})));
+            }),
+            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            switchMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            switchMap(collection => updateOneObs(oneObjectFilter, oneObjectToUpsert, collection, {upsert: true}).pipe(map(() => collection))),
+            switchMap(collection => updateOneObs(oneObjectFilter, oneObjectValuesToUpdate, collection, {upsert: true}).pipe(map(() => collection))),
+            switchMap(collection => findObs(collection))
+        )
+        .subscribe(
+            object => {
+                console.log('obj', object);
+                objectQueried = object;
+            },
+            err => {
+                console.error('err', err);
+                done(err);
+            },
+            () => {
+                let errMsg;
+                if (objectQueried.anArray.length !== 2) {
+                    console.log(objectQueried);
+                    errMsg = 'Object32 not as expected ' + objectQueried;
+                    console.error(errMsg);
+                    done(errMsg);
+                }
+                if (objectQueried.anArray[1] !== oneObjectAnotherItemToAddToArray) {
+                    console.log(objectQueried);
+                    errMsg = 'Item not added to the array in the object ' + objectQueried;
                     console.error(errMsg);
                     done(errMsg);
                 }

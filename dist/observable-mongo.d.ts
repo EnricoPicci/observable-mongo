@@ -21,6 +21,7 @@ export declare function updateOneObs(filter: Object, dataToUpdate: Object, colle
 export declare function updateManyObs(filter: Object, dataToUpdate: Object, collection: Collection<any>, options?: CommonOptions & {
     upsert?: boolean;
 }): Observable<UpdateWriteOpResult>;
+export declare function containsUpdateOperators(data: any): boolean;
 export declare function replaceOneObs(filter: Object, documentToReplaceWith: Object, collection: Collection<any>, options?: CommonOptions & {
     upsert?: boolean;
 }): Observable<ReplaceWriteOpResult>;
