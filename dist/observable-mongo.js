@@ -157,6 +157,9 @@ function dropObs(collection) {
 exports.dropObs = dropObs;
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
+// if the dataToUpdate object contains a mongo update operator (https://docs.mongodb.com/manual/reference/operator/update/)
+// then the object is passed as it is to the update function
+// otherwise, if it is a simple data object, the $set operator is used as default
 function updateOneObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
     return rxjs_2.from(collection.updateOne(filter, data, options));
@@ -164,6 +167,9 @@ function updateOneObs(filter, dataToUpdate, collection, options) {
 exports.updateOneObs = updateOneObs;
 // ============================ UPDATE MANY ================================
 // Returns an Observable which emits when the Objects selected by the filter have been updated
+// if the dataToUpdate object contains a mongo update operator (https://docs.mongodb.com/manual/reference/operator/update/)
+// then the object is passed as it is to the update function
+// otherwise, if it is a simple data object, the $set operator is used as default
 function updateManyObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
     return rxjs_2.from(collection.updateMany(filter, data, options));

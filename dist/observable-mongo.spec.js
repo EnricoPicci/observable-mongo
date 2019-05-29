@@ -199,7 +199,7 @@ describe('mongo observable functions chained', () => {
         };
         chai_1.expect(observable_mongo_1.containsUpdateOperators(data)).to.be.true;
     });
-    it.only(`3.2 update - connects to db, drops a collection, re-create the collection, 
+    it(`3.2 update - connects to db, drops a collection, re-create the collection, 
         inserts one object via update and upsert option, 
         then adds a new item in an array contained in the object just added via $push update operator
         and eventually queries the collection to check the updates`, done => {
