@@ -29,14 +29,17 @@ describe('mongo observable functions chained', () => {
         const oneObjectToInsert = { anotherName: 'Buba1' };
         let objectsQueried = new Array();
         observable_mongo_2.connectObs(uri)
-            .pipe(operators_1.switchMap(client => {
+            .pipe(operators_1.concatMap(client => {
             connectedClient = client;
             const db = client.db(dbName);
             return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
-        }), operators_1.switchMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.switchMap(client => {
+        }), operators_1.concatMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.concatMap(client => {
             const db = client.db(dbName);
             return observable_mongo_4.createCollectionObs(collectionName, db);
-        }), operators_1.switchMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(_ => collection))), operators_1.switchMap(collection => observable_mongo_6.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(obectIDs => ({ obectIDs, collection })))), operators_1.switchMap(data => observable_mongo_7.findObs(data.collection)))
+        }), operators_1.concatMap(collection => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection).pipe(operators_1.map(_ => collection))), operators_1.concatMap(collection => observable_mongo_6.insertOneObs(oneObjectToInsert, collection).pipe(operators_1.map(obectID => ({ obectID, collection })))), operators_1.tap(data => {
+            chai_1.expect(typeof data.obectID).to.equal('object');
+            chai_1.expect(typeof data.obectID.toHexString()).to.be.not.undefined;
+        }), operators_1.concatMap(data => observable_mongo_7.findObs(data.collection)))
             .subscribe(object => {
             console.log('obj', object);
             objectsQueried.push(object);

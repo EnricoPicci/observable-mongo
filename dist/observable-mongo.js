@@ -84,7 +84,7 @@ function insertOneObs(object, collection) {
         collection.insertOne(object, (err, result) => {
             if (err)
                 observer.error(err);
-            observer.next(_.values(result.insertedId));
+            observer.next(result.insertedId);
             observer.complete();
         });
     });
