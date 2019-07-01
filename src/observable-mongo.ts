@@ -93,10 +93,10 @@ export function createIndexObs(fieldNames: any, options: any, collection: Collec
 // ============================ INSERT ONE ================================
 // Returns an Observable which emits when the Object has been inserted
 export function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID> {
-    return Observable.create((observer: Observer<Array<ObjectID>>): TeardownLogic => {
+    return Observable.create((observer: Observer<ObjectID>): TeardownLogic => {
         collection.insertOne(object, (err, result) => {
             if(err) observer.error(err);
-            observer.next(_.values(result.insertedId));
+            observer.next(result.insertedId);
             observer.complete();
         })
     })

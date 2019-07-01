@@ -2,7 +2,7 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { switchMap, map, delay, toArray, take } from 'rxjs/operators';
+import { switchMap, map, delay, toArray, take, tap, concatMap } from 'rxjs/operators';
 
 import { MongoClient } from 'mongodb';
 
@@ -41,19 +41,23 @@ describe('mongo observable functions chained', () => {
 
         connectObs(uri)
         .pipe(
-            switchMap(client => {
+            concatMap(client => {
                 connectedClient = client;
                 const db = client.db(dbName);
                 return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
             }),
-            switchMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
-            switchMap(client => {
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
                 const db = client.db(dbName);
                 return createCollectionObs(collectionName, db);
             }),
-            switchMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(_ => collection))),
-            switchMap(collection => insertOneObs(oneObjectToInsert, collection).pipe(map(obectIDs => ({obectIDs, collection})))),
-            switchMap(data => findObs(data.collection))
+            concatMap(collection => insertManyObs(manyObjectsToInsert, collection).pipe(map(_ => collection))),
+            concatMap(collection => insertOneObs(oneObjectToInsert, collection).pipe(map(obectID => ({obectID, collection})))),
+            tap(data => {
+                expect(typeof data.obectID).to.equal('object');
+                expect(typeof data.obectID.toHexString()).to.be.not.undefined;
+            }),
+            concatMap(data => findObs(data.collection))
         )
         .subscribe(
             object => {
