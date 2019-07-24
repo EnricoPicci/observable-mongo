@@ -4,7 +4,7 @@ import { expect } from 'chai';
 
 import { switchMap, map, delay, toArray, take, tap, concatMap } from 'rxjs/operators';
 
-import { MongoClient } from 'mongodb';
+import { MongoClient, Collection } from 'mongodb';
 
 import {config} from './config';
 
@@ -17,7 +17,7 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { Subject } from 'rxjs';
+import { Subject, } from 'rxjs';
 import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, deleteObs, distinctObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
@@ -936,6 +936,61 @@ describe('mongo observable functions chained', () => {
                     done();
                 }
                 
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+
+
+    it(`14 createCollection with options - connects to db, drops a collection, re-create the collection
+        with options to specify that queries are not case sensitive, 
+        inserts some objects, then queries the collection`, done => {
+
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollNotCaseSensitive';
+        let connectedClient: MongoClient;
+        let collection: Collection<any>;
+
+        const manyObjectsToInsert = [
+            {name: 'Lucy'},
+            {name: 'LUCY'},
+            {name: 'lucy'},
+            {name: 'Tony'},
+        ];
+
+        connectObs(uri)
+        .pipe(
+            concatMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db, { collation: { locale: 'en_US', strength: 2 } });
+            }),
+            tap(coll => collection = coll),
+            concatMap(() => insertManyObs(manyObjectsToInsert, collection)),
+            concatMap(() => findObs(collection, { name: 'luCY'})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(3);
+            }),
+        )
+        .subscribe(
+            null,
+            err => {
+                done(err);
+                console.error('err', err);
+            },
+            () => {
+                done();
                 connectedClient.close().then(
                     () => console.log('Connection closed'),
                     err => console.error('Error while closing the connection', err)

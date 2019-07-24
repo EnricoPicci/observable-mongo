@@ -651,5 +651,38 @@ describe('mongo observable functions chained', () => {
             connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
         });
     }).timeout(20000);
+    it(`14 createCollection with options - connects to db, drops a collection, re-create the collection
+        with options to specify that queries are not case sensitive, 
+        inserts some objects, then queries the collection`, done => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollNotCaseSensitive';
+        let connectedClient;
+        let collection;
+        const manyObjectsToInsert = [
+            { name: 'Lucy' },
+            { name: 'LUCY' },
+            { name: 'lucy' },
+            { name: 'Tony' },
+        ];
+        observable_mongo_2.connectObs(uri)
+            .pipe(operators_1.concatMap(client => {
+            connectedClient = client;
+            const db = client.db(dbName);
+            return observable_mongo_3.collectionObs(db, collectionName).pipe(operators_1.map(collection => { return { collection, client }; }));
+        }), operators_1.concatMap(data => observable_mongo_8.dropObs(data.collection).pipe(operators_1.map(_d => data.client))), operators_1.concatMap(client => {
+            const db = client.db(dbName);
+            return observable_mongo_4.createCollectionObs(collectionName, db, { collation: { locale: 'en_US', strength: 2 } });
+        }), operators_1.tap(coll => collection = coll), operators_1.concatMap(() => observable_mongo_5.insertManyObs(manyObjectsToInsert, collection)), operators_1.concatMap(() => observable_mongo_7.findObs(collection, { name: 'luCY' })), operators_1.toArray(), operators_1.tap(data => {
+            chai_1.expect(data.length).to.equal(3);
+        }))
+            .subscribe(null, err => {
+            done(err);
+            console.error('err', err);
+        }, () => {
+            done();
+            connectedClient.close().then(() => console.log('Connection closed'), err => console.error('Error while closing the connection', err));
+        });
+    }).timeout(20000);
 });
 //# sourceMappingURL=observable-mongo.spec.js.map

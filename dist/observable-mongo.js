@@ -48,8 +48,8 @@ exports.collectionObs = collectionObs;
 // }
 // ============================ CREATE COLLECTION ================================
 // Returns an Observable which emits when the collection is created
-function createCollectionObs(name, db) {
-    const _createCollectionObs = rxjs_2.bindNodeCallback(db.createCollection).call(db, name);
+function createCollectionObs(name, db, options) {
+    const _createCollectionObs = rxjs_2.bindNodeCallback(db.createCollection).call(db, name, options);
     return _createCollectionObs;
 }
 exports.createCollectionObs = createCollectionObs;

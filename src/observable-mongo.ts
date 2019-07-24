@@ -8,7 +8,7 @@ import {bindNodeCallback, from} from 'rxjs';
 
 import * as _ from 'lodash';
 
-import { MongoClient } from "mongodb";
+import { MongoClient, CollectionCreateOptions } from "mongodb";
 import { MongoCallback } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
@@ -61,8 +61,8 @@ export function collectionObs(db: Db, name: string): Observable<Collection<any>>
 
 // ============================ CREATE COLLECTION ================================
 // Returns an Observable which emits when the collection is created
-export function createCollectionObs(name: string, db: Db): Observable<Collection<{}>> {
-    const _createCollectionObs = bindNodeCallback(db.createCollection).call(db, name);
+export function createCollectionObs(name: string, db: Db, options?: CollectionCreateOptions): Observable<Collection<any>> {
+    const _createCollectionObs = bindNodeCallback(db.createCollection).call(db, name, options);
     return _createCollectionObs;
 }
 // ALTERNATIVE VERSION USING "Observable.create" method

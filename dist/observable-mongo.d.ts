@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { MongoClient } from "mongodb";
+import { MongoClient, CollectionCreateOptions } from "mongodb";
 import { Db } from "mongodb";
 import { Collection } from "mongodb";
 import { ObjectID } from "mongodb";
@@ -8,7 +8,7 @@ import { CommonOptions } from 'mongodb';
 export declare function connectObs(uri: string): Observable<MongoClient>;
 export declare function collectionsObs(db: Db): Observable<Collection<any>[]>;
 export declare function collectionObs(db: Db, name: string): Observable<Collection<any>>;
-export declare function createCollectionObs(name: string, db: Db): Observable<Collection<{}>>;
+export declare function createCollectionObs(name: string, db: Db, options?: CollectionCreateOptions): Observable<Collection<any>>;
 export declare function createIndexObs(fieldNames: any, options: any, collection: Collection): Observable<Collection>;
 export declare function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID>;
 export declare function insertManyObs(objects: Array<Object>, collection: Collection<any>): Observable<Array<ObjectID>>;
