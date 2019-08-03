@@ -17,7 +17,7 @@ import { insertManyObs } from './observable-mongo';
 import { insertOneObs } from './observable-mongo';
 import { findObs } from './observable-mongo';
 import { dropObs } from './observable-mongo';
-import { Subject, } from 'rxjs';
+import { Subject, Observable, } from 'rxjs';
 import { updateOneObs, updateManyObs, aggregateObs, createIndexObs, deleteObs, distinctObs } from './observable-mongo';
 
 describe('mongo observable functions chained', () => {
@@ -945,7 +945,6 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(20000);
 
-
     it(`14 createCollection with options - connects to db, drops a collection, re-create the collection
         with options to specify that queries are not case sensitive, 
         inserts some objects, then queries the collection`, done => {
@@ -980,6 +979,7 @@ describe('mongo observable functions chained', () => {
             concatMap(() => findObs(collection, { name: 'luCY'})),
             toArray(),
             tap(data => {
+                // there are 3 lucies whose name is the same just with different cases
                 expect(data.length).to.equal(3);
             }),
         )
@@ -1000,3 +1000,300 @@ describe('mongo observable functions chained', () => {
 
     }).timeout(20000);
 });
+
+describe(`if operations are first built and executed they behave correctly -  these tests are to check that the observables
+are actually cold (i.e. execute only when subscribed) and do not hide a Promise which instead would
+execute immediately`, () => {
+    it(`1.1 creates a deleteObs observable and then executes it later`, done => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollForDeleteCreatedFirstAndThenExecuted';
+        let connectedClient: MongoClient;
+        let collection: Collection<any>;
+
+        const thingName = 'thing to delete';
+        const manyObjectsToInsert = [
+            {name: thingName},
+            {name: 'stuff'},
+        ];
+
+        let deleteOperation: Observable<any>;
+
+        connectObs(uri)
+        .pipe(
+            concatMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            tap(coll => collection = coll),
+            concatMap(() => insertManyObs(manyObjectsToInsert, collection)),
+            // create the delete operation
+            tap(() => {
+                deleteOperation = deleteObs({name: thingName}, collection);
+            }),
+            // wait some time
+            delay(10),
+            // read and find still the stuff loaded into the collection
+            concatMap(() => findObs(collection, {})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(manyObjectsToInsert.length);
+            }),
+            // wait some more time
+            delay(10),
+            // execute the delete operation
+            concatMap(() => deleteOperation),
+            // now the collection should have one element less
+            concatMap(() => findObs(collection, {})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(manyObjectsToInsert.length - 1);
+            }),
+        )
+        .subscribe(
+            null,
+            err => {
+                done(err);
+                console.error('err', err);
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+
+    it(`1.2 creates a replaceOneObs observable and then executes it later`, done => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollForReplaceOneObsCreatedFirstAndThenExecuted';
+        let connectedClient: MongoClient;
+        let collection: Collection<any>;
+
+        const originalThingName = 'thing to replace';
+        const newThingName = 'the new thing';
+        const manyObjectsToInsert = [
+            {name: originalThingName},
+            {name: 'stuff'},
+        ];
+
+        let replaceOneOperation: Observable<any>;
+
+        connectObs(uri)
+        .pipe(
+            concatMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            tap(coll => collection = coll),
+            concatMap(() => insertManyObs(manyObjectsToInsert, collection)),
+            // create the replaceOne operation
+            tap(() => {
+                replaceOneOperation = replaceOneObs({name: originalThingName}, {name: newThingName}, collection);
+            }),
+            // wait some time
+            delay(10),
+            // read and find still the stuff loaded into the collection
+            concatMap(() => findObs(collection, {name: originalThingName})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(1);
+            }),
+            // wait some more time
+            delay(10),
+            // execute the replaceOne operation
+            concatMap(() => replaceOneOperation),
+            // now the old object should not be there anymore
+            concatMap(() => findObs(collection, {name: originalThingName})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(0);
+            }),
+            // while we should find the new object
+            concatMap(() => findObs(collection, {name: newThingName})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(1);
+            }),
+        )
+        .subscribe(
+            null,
+            err => {
+                done(err);
+                console.error('err', err);
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+
+    it(`1.3 creates a updateManyObs observable and then executes it later`, done => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollForUpdateManyObsCreatedFirstAndThenExecuted';
+        let connectedClient: MongoClient;
+        let collection: Collection<any>;
+
+        const idOfThingToUpdate = 'id of things to update';
+        const originalContent = 'original content';
+        const newContent = 'new content';
+        const manyObjectsToInsert = [
+            {id: idOfThingToUpdate, content: originalContent},
+            {id: idOfThingToUpdate, content: originalContent},
+            {is: 'new id', content: 'something else'},
+        ];
+
+        let updateManyOperation: Observable<any>;
+
+        connectObs(uri)
+        .pipe(
+            concatMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            tap(coll => collection = coll),
+            concatMap(() => insertManyObs(manyObjectsToInsert, collection)),
+            // create the replaceOne operation
+            tap(() => {
+                updateManyOperation = updateManyObs({id: idOfThingToUpdate}, {content: newContent}, collection);
+            }),
+            // wait some time
+            delay(10),
+            // read and find still the stuff loaded into the collection
+            concatMap(() => findObs(collection, {id: idOfThingToUpdate})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(2);
+                data.map(d => expect(d.content).to.equal(originalContent));
+            }),
+            // wait some more time
+            delay(10),
+            // execute the updateManyObs operation
+            concatMap(() => updateManyOperation),
+            // now the new content should be there
+            concatMap(() => findObs(collection, {id: idOfThingToUpdate})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(2);
+                data.map(d => expect(d.content).to.equal(newContent));
+            }),
+        )
+        .subscribe(
+            null,
+            err => {
+                done(err);
+                console.error('err', err);
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+
+    it(`1.4 creates a updateOneObs observable and then executes it later`, done => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollForUpdateOneObsCreatedFirstAndThenExecuted';
+        let connectedClient: MongoClient;
+        let collection: Collection<any>;
+
+        const idOfThingToUpdate = 'id of things to update';
+        const originalContent = 'original content';
+        const newContent = 'new content';
+        const manyObjectsToInsert = [
+            {id: idOfThingToUpdate, content: originalContent},
+            {id: idOfThingToUpdate, content: originalContent},
+            {is: 'new id', content: 'something else'},
+        ];
+
+        let updateOneOperation: Observable<any>;
+
+        connectObs(uri)
+        .pipe(
+            concatMap(client => {
+                connectedClient = client;
+                const db = client.db(dbName);
+                return collectionObs(db, collectionName).pipe(map(collection => {return {collection, client}}));
+            }),
+            concatMap(data => dropObs(data.collection).pipe(map(_d => data.client))),
+            concatMap(client => {
+                const db = client.db(dbName);
+                return createCollectionObs(collectionName, db);
+            }),
+            tap(coll => collection = coll),
+            concatMap(() => insertManyObs(manyObjectsToInsert, collection)),
+            // create the replaceOne operation
+            tap(() => {
+                updateOneOperation = updateOneObs({id: idOfThingToUpdate}, {content: newContent}, collection);
+            }),
+            // wait some time
+            delay(10),
+            // read and find still the stuff loaded into the collection
+            concatMap(() => findObs(collection, {id: idOfThingToUpdate})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(2);
+                data.map(d => expect(d.content).to.equal(originalContent));
+            }),
+            // wait some more time
+            delay(10),
+            // execute the updateManyObs operation
+            concatMap(() => updateOneOperation),
+            // now the new content should be there
+            concatMap(() => findObs(collection, {id: idOfThingToUpdate})),
+            toArray(),
+            tap(data => {
+                expect(data.length).to.equal(2);
+                expect(data.filter(d => d.content === newContent).length).to.equal(1);
+            }),
+        )
+        .subscribe(
+            null,
+            err => {
+                done(err);
+                console.error('err', err);
+            },
+            () => {
+                done();
+                connectedClient.close().then(
+                    () => console.log('Connection closed'),
+                    err => console.error('Error while closing the connection', err)
+                );
+            }
+        )
+
+    }).timeout(20000);
+})

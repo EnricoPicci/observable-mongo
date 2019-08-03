@@ -2,7 +2,7 @@
 import { Observable } from 'rxjs';
 import { Observer} from 'rxjs';
 import {TeardownLogic} from 'rxjs';
-import {bindNodeCallback, from} from 'rxjs';
+import {bindNodeCallback} from 'rxjs';
 // import 'rxjs/add/observable/bindNodeCallback';
 // import 'rxjs/add/observable/fromPromise';
 
@@ -188,7 +188,16 @@ export function updateOneObs(
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
     const data = buildObjectForUpdate(dataToUpdate);
-    return from(collection.updateOne(filter, data, options));
+    return Observable.create((observer: Observer<DeleteWriteOpResultObject>): TeardownLogic => {
+        collection.updateOne(filter, data, options, (err, result) => {
+            if (err) {
+                observer.error(err)
+            } else {
+                observer.next(result);
+                observer.complete();
+            };
+        })
+    })
 }
 
 // ============================ UPDATE MANY ================================
@@ -203,7 +212,16 @@ export function updateManyObs(
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<UpdateWriteOpResult> {
     const data = buildObjectForUpdate(dataToUpdate);
-    return from(collection.updateMany(filter, data, options));
+    return Observable.create((observer: Observer<DeleteWriteOpResultObject>): TeardownLogic => {
+        collection.updateMany(filter, data, options, (err, result) => {
+            if (err) {
+                observer.error(err)
+            } else {
+                observer.next(result);
+                observer.complete();
+            };
+        })
+    })
 }
 // this function is exported only to allow test
 export function containsUpdateOperators(data: any) {
@@ -224,7 +242,16 @@ export function replaceOneObs(
     collection: Collection<any>,
     options?: CommonOptions & {upsert?: boolean}
 ): Observable<ReplaceWriteOpResult> {
-    return from(collection.replaceOne(filter, documentToReplaceWith, options));
+    return Observable.create((observer: Observer<DeleteWriteOpResultObject>): TeardownLogic => {
+        collection.replaceOne(filter, documentToReplaceWith, options, (err, result) => {
+            if (err) {
+                observer.error(err)
+            } else {
+                observer.next(result);
+                observer.complete();
+            };
+        })
+    })
 }
 
 // ============================ REMOVE ================================
@@ -233,7 +260,16 @@ export function deleteObs(
     selector: Object,
     collection: Collection<any>,
 ): Observable<DeleteWriteOpResultObject> {
-    return from(collection.deleteMany(selector));
+    return Observable.create((observer: Observer<DeleteWriteOpResultObject>): TeardownLogic => {
+        collection.deleteMany(selector, (err, result) => {
+            if (err) {
+                observer.error(err)
+            } else {
+                observer.next(result);
+                observer.complete();
+            };
+        })
+    })
 }
 
 // ============================ AGGREGATE ================================
