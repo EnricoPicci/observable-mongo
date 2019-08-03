@@ -162,7 +162,18 @@ exports.dropObs = dropObs;
 // otherwise, if it is a simple data object, the $set operator is used as default
 function updateOneObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
-    return rxjs_2.from(collection.updateOne(filter, data, options));
+    return rxjs_1.Observable.create((observer) => {
+        collection.updateOne(filter, data, options, (err, result) => {
+            if (err) {
+                observer.error(err);
+            }
+            else {
+                observer.next(result);
+                observer.complete();
+            }
+            ;
+        });
+    });
 }
 exports.updateOneObs = updateOneObs;
 // ============================ UPDATE MANY ================================
@@ -172,7 +183,18 @@ exports.updateOneObs = updateOneObs;
 // otherwise, if it is a simple data object, the $set operator is used as default
 function updateManyObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
-    return rxjs_2.from(collection.updateMany(filter, data, options));
+    return rxjs_1.Observable.create((observer) => {
+        collection.updateMany(filter, data, options, (err, result) => {
+            if (err) {
+                observer.error(err);
+            }
+            else {
+                observer.next(result);
+                observer.complete();
+            }
+            ;
+        });
+    });
 }
 exports.updateManyObs = updateManyObs;
 // this function is exported only to allow test
@@ -189,13 +211,35 @@ function buildObjectForUpdate(data) {
 // =========================== REPLACE ONE =================================
 // Returns an Observable which emits when the Object selected by the filter is replaced
 function replaceOneObs(filter, documentToReplaceWith, collection, options) {
-    return rxjs_2.from(collection.replaceOne(filter, documentToReplaceWith, options));
+    return rxjs_1.Observable.create((observer) => {
+        collection.replaceOne(filter, documentToReplaceWith, options, (err, result) => {
+            if (err) {
+                observer.error(err);
+            }
+            else {
+                observer.next(result);
+                observer.complete();
+            }
+            ;
+        });
+    });
 }
 exports.replaceOneObs = replaceOneObs;
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed
 function deleteObs(selector, collection) {
-    return rxjs_2.from(collection.deleteMany(selector));
+    return rxjs_1.Observable.create((observer) => {
+        collection.deleteMany(selector, (err, result) => {
+            if (err) {
+                observer.error(err);
+            }
+            else {
+                observer.next(result);
+                observer.complete();
+            }
+            ;
+        });
+    });
 }
 exports.deleteObs = deleteObs;
 // ============================ AGGREGATE ================================
