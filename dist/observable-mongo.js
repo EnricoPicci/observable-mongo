@@ -24,7 +24,10 @@ exports.collectionsObs = collectionsObs;
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>[]>): TeardownLogic => {
 //         db.collections((err, results) => {
-//             if(err) observer.error(err);
+//             if(err) {
+//                 observer.error(err);
+//                 return;
+//             }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -40,7 +43,10 @@ exports.collectionObs = collectionObs;
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>[]>): TeardownLogic => {
 //         db.collections((err, results) => {
-//             if(err) observer.error(err);
+//             if(err) {
+//                 observer.error(err);
+//                 return;
+//             }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -56,8 +62,11 @@ exports.createCollectionObs = createCollectionObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
 // export function createCollectionObs(name: string, db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>>): TeardownLogic => {
-//         db.createCollection(name, (err, results) => {
-//             if(err) observer.error(err);
+//         db.createCollection(name, (err, results) => {     
+//         if(err) {
+//             observer.error(err);
+//             return;
+//         }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -69,8 +78,10 @@ exports.createCollectionObs = createCollectionObs;
 function createIndexObs(fieldNames, options, collection) {
     return rxjs_1.Observable.create((observer) => {
         collection.createIndex(fieldNames, options, (err, _results) => {
-            if (err)
+            if (err) {
                 observer.error(err);
+                return;
+            }
             observer.next(collection);
             observer.complete();
         });
@@ -82,8 +93,10 @@ exports.createIndexObs = createIndexObs;
 function insertOneObs(object, collection) {
     return rxjs_1.Observable.create((observer) => {
         collection.insertOne(object, (err, result) => {
-            if (err)
+            if (err) {
                 observer.error(err);
+                return;
+            }
             observer.next(result.insertedId);
             observer.complete();
         });
@@ -266,8 +279,10 @@ exports.aggregateObs = aggregateObs;
 function distinctObs(collection, key, query, options) {
     return rxjs_1.Observable.create((observer) => {
         collection.distinct(key, query, options, (err, result) => {
-            if (err)
+            if (err) {
                 observer.error(err);
+                return;
+            }
             observer.next(result);
             observer.complete();
         });

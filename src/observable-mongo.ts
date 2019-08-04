@@ -33,7 +33,10 @@ export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>[]>): TeardownLogic => {
 //         db.collections((err, results) => {
-//             if(err) observer.error(err);
+//             if(err) {
+//                 observer.error(err);
+//                 return;
+//             }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -51,7 +54,10 @@ export function collectionObs(db: Db, name: string): Observable<Collection<any>>
 // export function collectionsObs(db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>[]>): TeardownLogic => {
 //         db.collections((err, results) => {
-//             if(err) observer.error(err);
+//             if(err) {
+//                 observer.error(err);
+//                 return;
+//             }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -68,8 +74,11 @@ export function createCollectionObs(name: string, db: Db, options?: CollectionCr
 // ALTERNATIVE VERSION USING "Observable.create" method
 // export function createCollectionObs(name: string, db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>>): TeardownLogic => {
-//         db.createCollection(name, (err, results) => {
-//             if(err) observer.error(err);
+//         db.createCollection(name, (err, results) => {     
+//         if(err) {
+//             observer.error(err);
+//             return;
+//         }
 //             observer.next(results);
 //             observer.complete();
 //         })
@@ -83,7 +92,10 @@ export function createCollectionObs(name: string, db: Db, options?: CollectionCr
 export function createIndexObs(fieldNames: any, options: any, collection: Collection): Observable<Collection> {
     return Observable.create((observer: Observer<any>): TeardownLogic => {
         collection.createIndex(fieldNames, options, (err, _results) => {
-            if(err) observer.error(err);
+            if(err) {
+                observer.error(err);
+                return;
+            }
             observer.next(collection);
             observer.complete();
         })
@@ -95,7 +107,10 @@ export function createIndexObs(fieldNames: any, options: any, collection: Collec
 export function insertOneObs(object: Object, collection: Collection<any>): Observable<ObjectID> {
     return Observable.create((observer: Observer<ObjectID>): TeardownLogic => {
         collection.insertOne(object, (err, result) => {
-            if(err) observer.error(err);
+            if(err) {
+                observer.error(err);
+                return;
+            }
             observer.next(result.insertedId);
             observer.complete();
         })
@@ -299,7 +314,10 @@ export function aggregateObs(collection: Collection<any>, aggregationPipeline: A
 export function distinctObs(collection: Collection<any>, key: string, query?: any, options?: any): Observable<Array<any>> {
     return Observable.create((observer: Observer<any>): TeardownLogic => {
         collection.distinct(key, query, options, (err, result) => {
-            if(err) observer.error(err);
+            if(err) {
+                observer.error(err);
+                return;
+            }
             observer.next(result);
             observer.complete();
         })
