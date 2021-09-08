@@ -5,25 +5,31 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@types/chai": "^4.1.2",
-    "@types/mocha": "^5.2.5",
-    "@types/mongodb": "^3.0.5",
-    "@types/node": "^10.12.18",
-    "chai": "^4.1.2",
-    "coveralls": "^3.0.3",
+    "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.7.13",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "chai": "^4.3.4",
+    "coveralls": "^3.1.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-deprecation": "^1.2.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^5.0.1",
-    "nyc": "^14.1.1",
-    "observable-fs": "^2.1.3",
-    "observable-http-request": "^1.1.2",
-    "source-map-support": "^0.5.3",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.4.3"
+    "mocha": "^9.1.1",
+    "nyc": "^15.1.0",
+    "observable-fs": "^2.1.8",
+    "observable-http-request": "^1.1.8",
+    "prettier": "^2.3.2",
+    "source-map-support": "^0.5.19",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.2"
   },
   "dependencies": {
-    "lodash": "^4.17.15",
-    "mongodb": "^3.0.3",
-    "rxjs": "^6.4.0"
+    "lodash": "^4.17.21",
+    "mongodb": "^4.1.1",
+    "rxjs": "^7.3.0"
   },
   "scripts": {
     "test-mocha": "mocha -r ts-node/register --require source-map-support/register --recursive src/**/*.spec.ts ",
@@ -33,7 +39,9 @@
     "prepublishOnly": "npm version patch",
     "preversion": "npm test",
     "version": "npm run tsc && git add -A dist",
-    "postversion": "git push"
+    "postversion": "git push",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "nyc": {
     "extension": [

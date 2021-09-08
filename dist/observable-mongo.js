@@ -1,5 +1,8 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.distinctObs = exports.aggregateObs = exports.deleteObs = exports.replaceOneObs = exports.containsUpdateOperators = exports.updateManyObs = exports.updateOneObs = exports.dropObs = exports.findObs = exports.qc = exports.insertManyObs = exports.insertOneObs = exports.createIndexObs = exports.createCollectionObs = exports.collectionObs = exports.collectionsObs = exports.connectObs = void 0;
 const rxjs_1 = require("rxjs");
 const rxjs_2 = require("rxjs");
 // import 'rxjs/add/observable/bindNodeCallback';
@@ -9,15 +12,13 @@ const mongodb_1 = require("mongodb");
 // ============================ CONNECT ================================
 // Returns an Observable which emits when the connection is established
 function connectObs(uri) {
-    return _connectObs(uri);
+    return (0, rxjs_1.from)(new mongodb_1.MongoClient(uri).connect());
 }
 exports.connectObs = connectObs;
-const fConnect = (uri, cb) => mongodb_1.MongoClient.connect(uri, cb);
-const _connectObs = rxjs_2.bindNodeCallback(fConnect);
 // ============================ COLLECTIONS ================================
 // Returns an Observable which emits when the collections names are read and ready
 function collectionsObs(db) {
-    return rxjs_2.bindNodeCallback(db.collections).call(db);
+    return (0, rxjs_2.bindNodeCallback)(db.collections).call(db);
 }
 exports.collectionsObs = collectionsObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
@@ -36,33 +37,20 @@ exports.collectionsObs = collectionsObs;
 // ============================ COLLECTION ================================
 // Returns an Observable which emits when the collections names are read and ready
 function collectionObs(db, name) {
-    return rxjs_2.bindNodeCallback(db.collection).call(db, name);
+    return (0, rxjs_1.of)(db.collection(name));
 }
 exports.collectionObs = collectionObs;
-// ALTERNATIVE VERSION USING "Observable.create" method
-// export function collectionsObs(db: Db): Observable<Collection<any>[]> {
-//     return Observable.create((observer: Observer<Collection<any>[]>): TeardownLogic => {
-//         db.collections((err, results) => {
-//             if(err) {
-//                 observer.error(err);
-//                 return;
-//             }
-//             observer.next(results);
-//             observer.complete();
-//         })
-//     })
-// }
 // ============================ CREATE COLLECTION ================================
 // Returns an Observable which emits when the collection is created
 function createCollectionObs(name, db, options) {
-    const _createCollectionObs = rxjs_2.bindNodeCallback(db.createCollection).call(db, name, options);
+    const _createCollectionObs = (0, rxjs_2.bindNodeCallback)(db.createCollection).call(db, name, options);
     return _createCollectionObs;
 }
 exports.createCollectionObs = createCollectionObs;
 // ALTERNATIVE VERSION USING "Observable.create" method
 // export function createCollectionObs(name: string, db: Db): Observable<Collection<any>[]> {
 //     return Observable.create((observer: Observer<Collection<any>>): TeardownLogic => {
-//         db.createCollection(name, (err, results) => {     
+//         db.createCollection(name, (err, results) => {
 //         if(err) {
 //             observer.error(err);
 //             return;
@@ -76,8 +64,8 @@ exports.createCollectionObs = createCollectionObs;
 // Returns an Observable which emits when the index is created - the object notified is the Collection itself
 // ALTERNATIVE VERSION USING "Observable.create" method
 function createIndexObs(fieldNames, options, collection) {
-    return rxjs_1.Observable.create((observer) => {
-        collection.createIndex(fieldNames, options, (err, _results) => {
+    return new rxjs_1.Observable((observer) => {
+        collection.createIndex(fieldNames, options, (err) => {
             if (err) {
                 observer.error(err);
                 return;
@@ -91,7 +79,7 @@ exports.createIndexObs = createIndexObs;
 // ============================ INSERT ONE ================================
 // Returns an Observable which emits when the Object has been inserted
 function insertOneObs(object, collection) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.insertOne(object, (err, result) => {
             if (err) {
                 observer.error(err);
@@ -106,7 +94,7 @@ exports.insertOneObs = insertOneObs;
 // ============================ INSERT MANY ================================
 // Returns an Observable which emits when the Objects have been inserted
 function insertManyObs(objects, collection) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.insertMany(objects, (err, result) => {
             // In this case it is important to add the "else" condition to discriminate what
             // we do in case of non error, where we get the "insertedIds" propertyt from the result
@@ -119,7 +107,6 @@ function insertManyObs(objects, collection) {
                 observer.next(_.values(result.insertedIds));
                 observer.complete();
             }
-            ;
         });
     });
 }
@@ -129,8 +116,8 @@ function findObs(collection, queryConditions, options) {
     const optionsObj = options ? options : {};
     const queryCursor = collection.find(queryObj, optionsObj);
     exports.qc = queryCursor;
-    return rxjs_1.Observable.create((observer) => {
-        queryCursor.forEach(doc => {
+    return new rxjs_1.Observable((observer) => {
+        queryCursor.forEach((doc) => {
             try {
                 observer.next(doc);
             }
@@ -157,10 +144,10 @@ exports.findObs = findObs;
 // }
 // ALTERNATIVE VERSION USING "Observable.create" method - preferred to use this version to be able to control the error codes
 function dropObs(collection) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.drop((err, results) => {
             // error code 26 states that "NamespaceNotFound", i.e. the collection is not present - in this case we ignore the error
-            if (err && err.code !== 26)
+            if (err && err instanceof mongodb_1.MongoError && err.code !== 26)
                 observer.error(err);
             observer.next(results);
             observer.complete();
@@ -175,7 +162,7 @@ exports.dropObs = dropObs;
 // otherwise, if it is a simple data object, the $set operator is used as default
 function updateOneObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.updateOne(filter, data, options, (err, result) => {
             if (err) {
                 observer.error(err);
@@ -184,7 +171,6 @@ function updateOneObs(filter, dataToUpdate, collection, options) {
                 observer.next(result);
                 observer.complete();
             }
-            ;
         });
     });
 }
@@ -196,7 +182,7 @@ exports.updateOneObs = updateOneObs;
 // otherwise, if it is a simple data object, the $set operator is used as default
 function updateManyObs(filter, dataToUpdate, collection, options) {
     const data = buildObjectForUpdate(dataToUpdate);
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.updateMany(filter, data, options, (err, result) => {
             if (err) {
                 observer.error(err);
@@ -205,7 +191,6 @@ function updateManyObs(filter, dataToUpdate, collection, options) {
                 observer.next(result);
                 observer.complete();
             }
-            ;
         });
     });
 }
@@ -224,7 +209,7 @@ function buildObjectForUpdate(data) {
 // =========================== REPLACE ONE =================================
 // Returns an Observable which emits when the Object selected by the filter is replaced
 function replaceOneObs(filter, documentToReplaceWith, collection, options) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.replaceOne(filter, documentToReplaceWith, options, (err, result) => {
             if (err) {
                 observer.error(err);
@@ -233,7 +218,6 @@ function replaceOneObs(filter, documentToReplaceWith, collection, options) {
                 observer.next(result);
                 observer.complete();
             }
-            ;
         });
     });
 }
@@ -241,7 +225,7 @@ exports.replaceOneObs = replaceOneObs;
 // ============================ REMOVE ================================
 // Returns an Observable which emits when the documents selected via the selector have been removed
 function deleteObs(selector, collection) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.deleteMany(selector, (err, result) => {
             if (err) {
                 observer.error(err);
@@ -250,7 +234,6 @@ function deleteObs(selector, collection) {
                 observer.next(result);
                 observer.complete();
             }
-            ;
         });
     });
 }
@@ -259,8 +242,8 @@ exports.deleteObs = deleteObs;
 // Returns an Observable which emits each document returned by the aggregation logic
 function aggregateObs(collection, aggregationPipeline) {
     const aggregationCursor = collection.aggregate(aggregationPipeline);
-    return rxjs_1.Observable.create((observer) => {
-        aggregationCursor.forEach(doc => {
+    return new rxjs_1.Observable((observer) => {
+        aggregationCursor.forEach((doc) => {
             try {
                 observer.next(doc);
             }
@@ -277,7 +260,7 @@ exports.aggregateObs = aggregateObs;
 // ============================ DISTINCT ================================
 // Returns an Observable which emits each document returned by the aggregation logic
 function distinctObs(collection, key, query, options) {
-    return rxjs_1.Observable.create((observer) => {
+    return new rxjs_1.Observable((observer) => {
         collection.distinct(key, query, options, (err, result) => {
             if (err) {
                 observer.error(err);
