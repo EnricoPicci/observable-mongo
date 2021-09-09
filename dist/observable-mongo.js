@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.distinctObs = exports.aggregateObs = exports.deleteObs = exports.replaceOneObs = exports.containsUpdateOperators = exports.updateManyObs = exports.updateOneObs = exports.dropCollectionObs = exports.dropObs = exports.findObs = exports.qc = exports.insertManyObs = exports.insertOneObs = exports.createIndexObs = exports.createCollectionObs = exports.collectionObs = exports.collectionsObs = exports.connectObs = exports.connect = void 0;
+exports.distinctObs = exports.aggregateObs = exports.deleteObs = exports.replaceOneObs = exports.containsUpdateOperators = exports.updateManyObs = exports.updateOneObs = exports.dropCollectionObs = exports.dropObs = exports.findObs = exports.qc = exports.insertManyObs = exports.insertOneObs = exports.createIndexObs = exports.createCollectionObs = exports.collectionObs = exports.collectionsObs = exports.connectObs = void 0;
 const rxjs_1 = require("rxjs");
 const rxjs_2 = require("rxjs");
 // import 'rxjs/add/observable/bindNodeCallback';
@@ -10,11 +10,6 @@ const rxjs_2 = require("rxjs");
 const _ = require("lodash");
 const mongodb_1 = require("mongodb");
 // ============================ CONNECT ================================
-// Returns the MongoClient synchronously
-function connect(uri) {
-    return new mongodb_1.MongoClient(uri).connect();
-}
-exports.connect = connect;
 // Returns an Observable which emits when the connection is established
 function connectObs(uri) {
     return (0, rxjs_1.from)(new mongodb_1.MongoClient(uri).connect());

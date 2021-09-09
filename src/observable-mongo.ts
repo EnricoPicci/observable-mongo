@@ -26,10 +26,6 @@ import { Db } from 'mongodb';
 import { Collection } from 'mongodb';
 
 // ============================ CONNECT ================================
-// Returns the MongoClient synchronously
-export function connect(uri: string) {
-    return new MongoClient(uri).connect();
-}
 // Returns an Observable which emits when the connection is established
 export function connectObs(uri: string) {
     return from(new MongoClient(uri).connect());
