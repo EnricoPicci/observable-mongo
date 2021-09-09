@@ -2,6 +2,7 @@ import { Observable } from 'rxjs';
 import { MongoClient, CreateCollectionOptions, UpdateResult, Document as MongoDoc, DeleteResult, ObjectId, UpdateOptions, ReplaceOptions, FindCursor } from 'mongodb';
 import { Db } from 'mongodb';
 import { Collection } from 'mongodb';
+export declare function connect(uri: string): Promise<MongoClient>;
 export declare function connectObs(uri: string): Observable<MongoClient>;
 export declare function collectionsObs(db: Db): Observable<Collection<any>[]>;
 export declare function collectionObs(db: Db, name: string): Observable<Collection<any>>;

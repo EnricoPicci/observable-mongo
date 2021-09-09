@@ -1,3 +1,4 @@
+import { connect } from './observable-mongo';
 import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
 import { createCollectionObs } from './observable-mongo';
@@ -11,6 +12,7 @@ import { deleteObs } from './observable-mongo';
 import { distinctObs } from './observable-mongo';
 import { replaceOneObs } from './observable-mongo';
 import { dropCollectionObs } from './observable-mongo';
+export { connect };
 export { connectObs };
 export { collectionObs };
 export { createCollectionObs };
