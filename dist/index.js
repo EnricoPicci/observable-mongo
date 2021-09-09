@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.replaceOneObs = exports.distinctObs = exports.deleteObs = exports.createIndexObs = exports.aggregateObs = exports.dropObs = exports.findObs = exports.updateManyObs = exports.updateOneObs = exports.insertManyObs = exports.insertOneObs = exports.createCollectionObs = exports.collectionObs = exports.connectObs = void 0;
+exports.dropCollectionObs = exports.replaceOneObs = exports.distinctObs = exports.deleteObs = exports.createIndexObs = exports.aggregateObs = exports.dropObs = exports.findObs = exports.updateManyObs = exports.updateOneObs = exports.insertManyObs = exports.insertOneObs = exports.createCollectionObs = exports.collectionObs = exports.connectObs = void 0;
 const observable_mongo_1 = require("./observable-mongo");
 Object.defineProperty(exports, "connectObs", { enumerable: true, get: function () { return observable_mongo_1.connectObs; } });
 const observable_mongo_2 = require("./observable-mongo");
@@ -27,4 +27,6 @@ const observable_mongo_11 = require("./observable-mongo");
 Object.defineProperty(exports, "distinctObs", { enumerable: true, get: function () { return observable_mongo_11.distinctObs; } });
 const observable_mongo_12 = require("./observable-mongo");
 Object.defineProperty(exports, "replaceOneObs", { enumerable: true, get: function () { return observable_mongo_12.replaceOneObs; } });
+const observable_mongo_13 = require("./observable-mongo");
+Object.defineProperty(exports, "dropCollectionObs", { enumerable: true, get: function () { return observable_mongo_13.dropCollectionObs; } });
 //# sourceMappingURL=index.js.map
