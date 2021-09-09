@@ -12,6 +12,7 @@ export declare function insertManyObs(objects: Array<any>, collection: Collectio
 export declare let qc: FindCursor<any>;
 export declare function findObs(collection: Collection<any>, queryConditions?: any, options?: any): Observable<any>;
 export declare function dropObs(collection: Collection<any>): Observable<any>;
+export declare function dropCollectionObs(name: string, db: Db): Observable<boolean>;
 export declare function updateOneObs(filter: any, dataToUpdate: any, collection: Collection<any>, options?: UpdateOptions & {
     upsert?: boolean;
 }): Observable<UpdateResult>;

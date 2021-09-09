@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.distinctObs = exports.aggregateObs = exports.deleteObs = exports.replaceOneObs = exports.containsUpdateOperators = exports.updateManyObs = exports.updateOneObs = exports.dropObs = exports.findObs = exports.qc = exports.insertManyObs = exports.insertOneObs = exports.createIndexObs = exports.createCollectionObs = exports.collectionObs = exports.collectionsObs = exports.connectObs = void 0;
+exports.distinctObs = exports.aggregateObs = exports.deleteObs = exports.replaceOneObs = exports.containsUpdateOperators = exports.updateManyObs = exports.updateOneObs = exports.dropCollectionObs = exports.dropObs = exports.findObs = exports.qc = exports.insertManyObs = exports.insertOneObs = exports.createIndexObs = exports.createCollectionObs = exports.collectionObs = exports.collectionsObs = exports.connectObs = void 0;
 const rxjs_1 = require("rxjs");
 const rxjs_2 = require("rxjs");
 // import 'rxjs/add/observable/bindNodeCallback';
@@ -155,6 +155,18 @@ function dropObs(collection) {
     });
 }
 exports.dropObs = dropObs;
+function dropCollectionObs(name, db) {
+    return new rxjs_1.Observable((observer) => {
+        db.dropCollection(name, (err, result) => {
+            // error code 26 states that "NamespaceNotFound", i.e. the collection is not present - in this case we ignore the error
+            if (err && err instanceof mongodb_1.MongoError && err.code !== 26)
+                observer.error(err);
+            observer.next(result);
+            observer.complete();
+        });
+    });
+}
+exports.dropCollectionObs = dropCollectionObs;
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated
 // if the dataToUpdate object contains a mongo update operator (https://docs.mongodb.com/manual/reference/operator/update/)

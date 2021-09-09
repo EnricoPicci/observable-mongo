@@ -177,6 +177,16 @@ export function dropObs(collection: Collection<any>): Observable<any> {
         });
     });
 }
+export function dropCollectionObs(name: string, db: Db): Observable<boolean> {
+    return new Observable((observer: Observer<any>): TeardownLogic => {
+        db.dropCollection(name, (err, result) => {
+            // error code 26 states that "NamespaceNotFound", i.e. the collection is not present - in this case we ignore the error
+            if (err && err instanceof MongoError && err.code !== 26) observer.error(err);
+            observer.next(result);
+            observer.complete();
+        });
+    });
+}
 
 // ============================ UPDATE ONE ================================
 // Returns an Observable which emits when the first Object selected by the filter has been updated

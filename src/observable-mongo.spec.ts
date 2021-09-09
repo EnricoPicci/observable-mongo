@@ -9,7 +9,7 @@ import { MongoClient, Collection } from 'mongodb';
 
 import { config } from './config';
 
-import { qc, replaceOneObs, containsUpdateOperators } from './observable-mongo';
+import { qc, replaceOneObs, containsUpdateOperators, dropCollectionObs, collectionsObs } from './observable-mongo';
 
 import { connectObs } from './observable-mongo';
 import { collectionObs } from './observable-mongo';
@@ -1062,6 +1062,49 @@ describe('mongo observable functions chained', () => {
                         () => console.log('Connection closed'),
                         (err) => console.error('Error while closing the connection', err),
                     );
+                },
+            });
+    }).timeout(20000);
+
+    it(`15 dropCollectionObs - connects to db, drops a collection, re-create the collection, 
+        drops the collection again and then check that the collection is not there`, (done) => {
+        const uri = config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollToBeDropped-' + Date.now().toString();
+        let connectedClient: MongoClient;
+
+        connectObs(uri)
+            .pipe(
+                tap((client) => {
+                    connectedClient = client;
+                }),
+                concatMap(() => dropCollectionObs(collectionName, connectedClient.db(dbName))),
+                concatMap(() => createCollectionObs(collectionName, connectedClient.db(dbName))),
+                // fetch all the collections and check that a collection with name equal to collectionName is there
+                concatMap(() => collectionsObs(connectedClient.db(dbName))),
+                tap((collections) => {
+                    expect(collections.filter((c) => c.collectionName === collectionName).length).equal(1);
+                }),
+                concatMap(() => dropCollectionObs(collectionName, connectedClient.db(dbName))),
+                // fetch all the collections and check that collectionName is NOT there any more since it hs been dropped
+                concatMap(() => collectionsObs(connectedClient.db(dbName))),
+                tap((collections) => {
+                    expect(collections.filter((c) => c.collectionName === collectionName).length).equal(0);
+                }),
+            )
+            .subscribe({
+                error: (err) => {
+                    console.error('err', err);
+                    done(err);
+                },
+                complete: () => {
+                    connectedClient
+                        .close()
+                        .then(
+                            () => console.log('Connection closed'),
+                            (err) => console.error('Error while closing the connection', err),
+                        )
+                        .finally(() => done());
                 },
             });
     }).timeout(20000);

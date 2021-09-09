@@ -792,6 +792,37 @@ describe('mongo observable functions chained', () => {
             },
         });
     }).timeout(20000);
+    it(`15 dropCollectionObs - connects to db, drops a collection, re-create the collection, 
+        drops the collection again and then check that the collection is not there`, (done) => {
+        const uri = config_1.config.mongoUri;
+        const dbName = 'mydb';
+        const collectionName = 'testCollToBeDropped-' + Date.now().toString();
+        let connectedClient;
+        (0, observable_mongo_2.connectObs)(uri)
+            .pipe((0, operators_1.tap)((client) => {
+            connectedClient = client;
+        }), (0, operators_1.concatMap)(() => (0, observable_mongo_1.dropCollectionObs)(collectionName, connectedClient.db(dbName))), (0, operators_1.concatMap)(() => (0, observable_mongo_4.createCollectionObs)(collectionName, connectedClient.db(dbName))), 
+        // fetch all the collections and check that a collection with name equal to collectionName is there
+        (0, operators_1.concatMap)(() => (0, observable_mongo_1.collectionsObs)(connectedClient.db(dbName))), (0, operators_1.tap)((collections) => {
+            (0, chai_1.expect)(collections.filter((c) => c.collectionName === collectionName).length).equal(1);
+        }), (0, operators_1.concatMap)(() => (0, observable_mongo_1.dropCollectionObs)(collectionName, connectedClient.db(dbName))), 
+        // fetch all the collections and check that collectionName is NOT there any more since it hs been dropped
+        (0, operators_1.concatMap)(() => (0, observable_mongo_1.collectionsObs)(connectedClient.db(dbName))), (0, operators_1.tap)((collections) => {
+            (0, chai_1.expect)(collections.filter((c) => c.collectionName === collectionName).length).equal(0);
+        }))
+            .subscribe({
+            error: (err) => {
+                console.error('err', err);
+                done(err);
+            },
+            complete: () => {
+                connectedClient
+                    .close()
+                    .then(() => console.log('Connection closed'), (err) => console.error('Error while closing the connection', err))
+                    .finally(() => done());
+            },
+        });
+    }).timeout(20000);
 });
 describe(`if operations are first built and executed they behave correctly -  these tests are to check that the observables
 are actually cold (i.e. execute only when subscribed) and do not hide a Promise which instead would
